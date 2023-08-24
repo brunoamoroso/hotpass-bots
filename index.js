@@ -12,9 +12,13 @@ module.exports = (req, res) => {
         const { query, body } = req;
 
         if(query.setWebhook === true){
-            const webhookUrl = `${BASE_PATH}/api/telegram-hook?secret_hash=${SECRET_HASH}`
+            const webhookUrl = `${BASE_PATH}/?secret_hash=${SECRET_HASH}`
             const isSet = bot.telegram.setWebhook(webhookUrl);
         }
+
+        if (query.secret_hash === SECRET_HASH) {
+            bot.handleUpdate(body)
+          }
 
     }catch(err){
         console.log(err);
