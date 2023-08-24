@@ -8,22 +8,16 @@ export const TOKEN = process.env.TOKEN;
 const bot = new Telegraf(process.env.TOKEN);
 
 // HANDLE OUR CONNECTION WITH TELEGRAM
-// try {
-//   const { body, query } = req;
-//   bot
-//     .launch({
-//       webhook: {
-//         domain: process.env.WEBHOOK_DOMAIN,
-//         port: process.env.PORT,
-//       },
-//     })
-//     .then(() => console.log("👍 Webhook listening on:", port));
-// } catch (error) {
-//   console.log("❌ Deu problema aqui hein");
-//   console.log(error.toString());
-// }
+  bot
+    .launch({
+      webhook: {
+        domain: process.env.WEBHOOK_DOMAIN,
+        port: process.env.PORT,
+      },
+    })
+    .then(() => console.log("👍 Webhook listening on:", port));
 
-// res.status(200).send("✅ Tudo certo!");
+res.status(200).send("✅ Tudo certo!");
 
 //answer when Myself send message
 bot.telegram.sendMessage(6588724288, "Alá hein");
