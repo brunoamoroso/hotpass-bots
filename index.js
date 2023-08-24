@@ -12,6 +12,7 @@ module.exports = (req, res) => {
     try{
         const { query, body } = req;
 
+        bot.launch({webhook: { domain: process.env.WEBHOOK_DOMAIN}})
 
     }catch(err){
         console.log(err);
