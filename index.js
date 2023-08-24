@@ -1,5 +1,3 @@
-//configure to read .env file
-require('dotenv').config();
 
 //import framework for telegram
 const {Telegraf} = require('telegraf');
