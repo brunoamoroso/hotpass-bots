@@ -1,8 +1,13 @@
+const {Telegraf} = require('telegraf');
+
 module.exports = (req, res) => {
-    response.json({
-        body: req.body,
-        query: req.query,
-        cookies: req.cookies,
-        
-    });
+    try{
+        const bot = new Telegraf(process.env.TOKEN);
+
+        const {body} = req;
+
+        bot.telegram.sendMessage(6588724288, "Alá hein");
+    }catch(error){
+        console.log(error);
+    }
 }
