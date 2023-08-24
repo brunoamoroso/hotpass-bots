@@ -17,8 +17,6 @@ const bot = new Telegraf(process.env.TOKEN);
     })
     .then(() => console.log("👍 Webhook listening on:", port));
 
-res.status(200).send("✅ Tudo certo!");
-
 //answer when Myself send message
 bot.telegram.sendMessage(6588724288, "Alá hein");
 
