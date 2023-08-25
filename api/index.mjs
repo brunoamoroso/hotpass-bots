@@ -17,7 +17,9 @@ app.use(express.urlencoded({
 }));
 
 app.use(bot.webhookCallback('/'));
-
+app.use('/', (req, res) => {
+  res.status(200).send('Entrei');
+})
 //middleware to enable POST method from telegram
 app.post('api/', (req, res, next) => {
     bot.telegram.sendMessage(6588724288, "Alá hein");
