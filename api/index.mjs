@@ -21,7 +21,6 @@ app.use(bot.webhookCallback('/'));
 //middleware to enable POST method from telegram
 app.use('/', (req, res) => {
   const {body, query} = req;
-  console.log(body);
   bot.telegram.sendMessage(6588724288, "Alá hein");
   bot.hears("Oi", (ctx) => {
     ctx.telegram.sendMessage('salve');
