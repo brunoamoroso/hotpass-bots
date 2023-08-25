@@ -1,8 +1,10 @@
-require('dotenv').config();
-const {Telegraf} = require('telegraf');
-const express = require('express');
-const app = express();
 
+import { Telegraf } from 'telegraf';
+import express from 'express';
+import { configDotenv } from 'dotenv';
+
+configDotenv();
+const app = express();
 const BASE_PATH =  "https://telegram-bot-teste-psi.vercel.app";
 
 const bot = new Telegraf(process.env.TOKEN);
@@ -11,6 +13,10 @@ const SECRET_HASH = "32e58fbahey833349df3383dc910e180"
 bot.telegram.sendMessage(6588724288, "Alá hein");
 bot.hears('Oi', (ctx) => { ctx.reply('Salve')});
 bot.launch();
+
+export default async (req, res) => {
+    res.status(200).send('OK');
+}
 
 // app.use(express.urlencoded({
 //     extended: true
