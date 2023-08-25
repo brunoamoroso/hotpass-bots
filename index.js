@@ -1,1 +1,0 @@
-const api = require('./api/webhook.mjs');
