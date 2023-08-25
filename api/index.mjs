@@ -16,7 +16,7 @@ app.post('/', (req, res, next) => {
     bot.hears("Oi", (ctx) => {
       ctx.reply("Salve");
     });
-    bot.launch();
+    bot.launch({webhook: {domain: process.env.WEBHOOK_DOMAIN}});
   
     res.status(200).send("OK");
 })
