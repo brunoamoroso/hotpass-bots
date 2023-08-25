@@ -9,6 +9,8 @@ const bot = new Telegraf(process.env.TOKEN);
 const SECRET_HASH = "32e58fbahey833349df3383dc910e180"
 
 bot.telegram.sendMessage(6588724288, "Alá hein");
+bot.hears('Oi', (ctx) => { ctx.reply('Salve')});
+bot.launch();
 
 // app.use(express.urlencoded({
 //     extended: true
@@ -24,8 +26,3 @@ bot.telegram.sendMessage(6588724288, "Alá hein");
 // })
 
 // app.listen(3000, () => { console.log('listening 3000')});
-
-export default async(req, res) => {
-    const { body, query } = req;
-    return res.send(`Hello ${body.name}, you just parsed the request body!`);
-}
