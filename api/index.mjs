@@ -23,7 +23,7 @@ app.use('/', (req, res) => {
   res.status(200).send('Entrei');
 })
 
-app.get('/', (req, res)=> {
+app.post('/', (req, res)=> {
   res.status(201).send('Ok');
 })
 
