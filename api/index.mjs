@@ -23,6 +23,10 @@ app.use('/', (req, res) => {
   res.status(200).send('Entrei');
 })
 
+app.get('/', (req, res)=> {
+  res.status(201).send('Ok');
+})
+
 app.listen(80, () => console.log('listening on 80'));
 
 export default app;
