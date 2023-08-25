@@ -1,24 +1,25 @@
-
-import { Telegraf } from 'telegraf';
-import express from 'express';
-import { configDotenv } from 'dotenv';
+import { Telegraf } from "telegraf";
+import express from "express";
+import { configDotenv } from "dotenv";
 
 configDotenv();
 const app = express();
 
-const BASE_PATH =  "https://telegram-bot-teste-psi.vercel.app/api/";
+const BASE_PATH = "https://telegram-bot-teste-psi.vercel.app/api/";
 
 const bot = new Telegraf(process.env.TOKEN);
-const SECRET_HASH = "32e58fbahey833349df3383dc910e180"
-
-bot.telegram.sendMessage(6588724288, "Alá hein");
-bot.hears('Oi', (ctx) => { ctx.reply('Salve')});
-bot.launch();
+const SECRET_HASH = "32e58fbahey833349df3383dc910e180";
 
 //middleware to enable POST method from telegram
 app.use((req, res, next) => {
-    res.status(200).send('OK');
-})
+  bot.telegram.sendMessage(6588724288, "Alá hein");
+  bot.hears("Oi", (ctx) => {
+    ctx.reply("Salve");
+  });
+  bot.launch();
+
+  res.status(200).send("OK");
+});
 
 export default app;
 
