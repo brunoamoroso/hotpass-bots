@@ -21,10 +21,10 @@ app.use(bot.webhookCallback('/'));
 //middleware to enable POST method from telegram
 app.use('/', (req, res) => {
   const {body, query} = req;
-  console.log(req);
+  console.log(body);
   bot.telegram.sendMessage(6588724288, "Alá hein");
   bot.hears("Oi", (ctx) => {
-    ctx.reply("Salve");
+    ctx.telegram.sendMessage('salve');
   });
 
   res.status(200).send('Entrei');
