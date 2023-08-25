@@ -18,6 +18,8 @@ app.use('/', (req, res) => {
     ctx.telegram.sendMessage('salve');
   });
 
+  bot.launch();
+
   res.status(200).send('Entrei');
 })
 
