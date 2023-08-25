@@ -11,13 +11,6 @@ const bot = new Telegraf(process.env.TOKEN);
 const SECRET_HASH = "32e58fbahey833349df3383dc910e180";
 bot.telegram.setWebhook(BASE_PATH);
 
-
-app.use(express.urlencoded({
-    extended: true
-}));
-
-app.use(bot.webhookCallback('/'));
-
 //middleware to enable POST method from telegram
 app.use('/', (req, res) => {
   const {body, query} = req;
