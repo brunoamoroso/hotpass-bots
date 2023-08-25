@@ -1,1 +1,1 @@
-const api = require('./api/webhook');
+const api = require('./api/webhook.mjs');
