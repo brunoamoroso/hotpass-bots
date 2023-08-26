@@ -23,7 +23,7 @@ app.use('/', (req, res) => {
 
   // bot.launch();
 
-  res.status(200).send('Olá');
+  res.send('Olá');
 })
 
 app.listen(80, () => console.log('listening on 80'));
