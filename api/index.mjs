@@ -8,12 +8,12 @@ const app = express();
 const BASE_PATH = "https://telegram-bot-teste-psi.vercel.app/api/";
 
 const bot = new Telegraf(process.env.TOKEN);
-app.use(bot.createWebhook(process.env.WEBHOOK_DOMAIN))
 // const SECRET_HASH = "32e58fbahey833349df3383dc910e180";
 
 
 //middleware to enable POST method from telegram
 app.use('/', (req, res) => {
+  bot.createWebhook(process.env.WEBHOOK_DOMAIN)
   const {body, query} = req;
   // bot.command('start', ctx => ctx.reply('Hello'));
   // bot.telegram.sendMessage(6588724288, "Alá hein");
