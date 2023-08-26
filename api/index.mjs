@@ -5,7 +5,7 @@ import { configDotenv } from "dotenv";
 configDotenv();
 const app = express();
 
-// const BASE_PATH = "https://telegram-bot-teste-psi.vercel.app/api/";
+const BASE_PATH = "https://telegram-bot-teste-psi.vercel.app/api/";
 
 const bot = new Telegraf(process.env.TOKEN);
 // const SECRET_HASH = "32e58fbahey833349df3383dc910e180";
@@ -18,7 +18,7 @@ app.use('/', (req, res) => {
     ctx.telegram.sendMessage('salve');
   });
 
-  bot.launch();
+  bot.launch({webhook: {domain: process.env.WEBHOOK_DOMAIN}});
 
   res.status(200).send('Entrei');
 })
