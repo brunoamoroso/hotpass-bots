@@ -14,7 +14,7 @@ app.use('/', (req, res) => {
   
   bot.start(ctx => ctx.reply('Olá'));
   bot.telegram.sendMessage(6588724288, "Alá hein");
-  bot.launch();
+  bot.launch({webhook: {domain: process.env.WEBHOOK_DOMAIN, hookPath: '/api/'}});
   res.send('Olá');
 })
 
