@@ -7,7 +7,7 @@ const app = express();
 
 const bot = new Telegraf(process.env.TOKEN);
 // const SECRET_HASH = "32e58fbahey833349df3383dc910e180";
-app.use(await bot.createWebhook({domain: process.env.WEBHOOK_DOMAIN, path: '/api/'}))
+app.use(await bot.createWebhook({domain: process.env.WEBHOOK_DOMAIN}))
 
 app.use('/', (req, res) => {
   const {body, query } = req;
