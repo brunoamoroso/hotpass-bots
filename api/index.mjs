@@ -10,6 +10,14 @@ const BASE_PATH = "https://telegram-bot-teste-psi.vercel.app/api/";
 const bot = new Telegraf(process.env.TOKEN);
 // const SECRET_HASH = "32e58fbahey833349df3383dc910e180";
 
+
+app.use(express.urlencoded({
+  extended: true
+}))
+
+app.use(express.json());
+
+
 //middleware to enable POST method from telegram
 app.use('/', (req, res) => {
   const {body, query} = req;
@@ -24,16 +32,9 @@ app.use('/', (req, res) => {
   res.status(200).send('Entrei');
 })
 
-// app.listen(80, () => console.log('listening on 80'));
+app.listen(80, () => console.log('listening on 80'));
 
 export default app;
-
-// app.use(express.urlencoded({
-//     extended: true
-// }))
-
-// app.use(express.json());
-
 // app.post('/', (req, res) => {
 //     bot.launch({
 //         webhook: { domain: process.env.TOKEN}
