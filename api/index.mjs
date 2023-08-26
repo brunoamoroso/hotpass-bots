@@ -12,7 +12,8 @@ app.use(await bot.createWebhook({domain: process.env.WEBHOOK_DOMAIN, path: '/api
 app.use('/', (req, res) => {
   const {body, query } = req;
   
-  bot.start(ctx => ctx.reply('Olá'))
+  bot.start(ctx => ctx.reply('Olá'));
+  bot.telegram.sendMessage(6588724288, "Alá hein");
   bot.launch();
   res.send('Olá');
 })
