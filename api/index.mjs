@@ -8,6 +8,7 @@ const app = express();
 const BASE_PATH = "https://telegram-bot-teste-psi.vercel.app/api/";
 
 const bot = new Telegraf(process.env.TOKEN);
+app.use(bot.createWebhook(process.env.WEBHOOK_DOMAIN))
 // const SECRET_HASH = "32e58fbahey833349df3383dc910e180";
 
 
@@ -22,7 +23,7 @@ app.use('/', (req, res) => {
 
   // bot.launch();
 
-  res.status(200).send('Entrei');
+  res.status(200).send('Olá');
 })
 
 app.listen(80, () => console.log('listening on 80'));
