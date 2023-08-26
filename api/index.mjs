@@ -7,11 +7,11 @@ const app = express();
 
 const bot = new Telegraf(process.env.TOKEN);
 // const SECRET_HASH = "32e58fbahey833349df3383dc910e180";
-app.use(await bot.createWebhook({domain: process.env.WEBHOOK_DOMAIN, path: '/api/'}))
+// app.use(await bot.createWebhook({domain: process.env.WEBHOOK_DOMAIN, path: '/api/'}))
+bot.launch({webhook: {domain: process.env.WEBHOOK_DOMAIN, hookPath: '/api/', port: process.env.PORT}});
 
 app.use('/', (req, res) => {
   const {body, query } = req;
-  bot.launch({webhook: {domain: process.env.WEBHOOK_DOMAIN, hookPath: '/api/'}});
 
   bot.start(ctx => ctx.reply('Olá'));
   bot.telegram.sendMessage(6588724288, "Alá hein");
