@@ -10,14 +10,18 @@ const bot = new Telegraf(process.env.TOKEN);
 // app.use(await bot.createWebhook({domain: process.env.WEBHOOK_DOMAIN, path: '/api/'}))
 bot.launch({webhook: {domain: process.env.WEBHOOK_DOMAIN, hookPath: '/api/'}});
 
-app.use('/', (req, res) => {
-  const {body, query } = req;
-
-  bot.start(ctx => ctx.reply('Olá'));
+bot.start(ctx => ctx.reply('Olá'));
   bot.telegram.sendMessage(6588724288, "Alá hein");
   bot.hears('Oi', ctx => ctx.reply('Mandou oi'));
-  res.send('Olá');
-})
+
+// app.use('/', (req, res) => {
+//   const {body, query } = req;
+
+//   bot.start(ctx => ctx.reply('Olá'));
+//   bot.telegram.sendMessage(6588724288, "Alá hein");
+//   bot.hears('Oi', ctx => ctx.reply('Mandou oi'));
+//   res.send('Olá');
+// })
 
 
 export default app;
