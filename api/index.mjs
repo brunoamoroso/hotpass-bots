@@ -11,8 +11,12 @@ const bot = new Telegraf(process.env.TOKEN);
 // const SECRET_HASH = "32e58fbahey833349df3383dc910e180";
 app.use(await bot.createWebhook({domain: process.env.WEBHOOK_DOMAIN}))
 
-bot.launch();
-bot.start(ctx => ctx.reply('Olá'))
+app.use('/telegraf/'+bot.webhookCallback(), (req, res) => {
+  bot.launch();
+  bot.start(ctx => ctx.reply('Olá'))
+
+  res.send('Olá');
+})
 
 app.listen(process.env.PORT)
 
