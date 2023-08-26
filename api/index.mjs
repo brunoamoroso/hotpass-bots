@@ -12,14 +12,12 @@ const bot = new Telegraf(process.env.TOKEN);
 app.use(await bot.createWebhook({domain: process.env.WEBHOOK_DOMAIN, path: '/api/'}))
 
 app.use('/', (req, res) => {
+  const {body, query } = req;
   bot.launch();
   bot.start(ctx => ctx.reply('Olá'))
 
   res.send('Olá');
 })
-
-app.listen(process.env.PORT)
-
 // app.use(bot.web, (req, res) => {
 //   const {body, query} = req;
 //   bot.launch();
