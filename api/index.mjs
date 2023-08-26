@@ -5,10 +5,10 @@ import { configDotenv } from "dotenv";
 configDotenv();
 const app = express();
 
-const BASE_PATH = "https://telegram-bot-teste-psi.vercel.app/api/";
+// const BASE_PATH = "https://telegram-bot-teste-psi.vercel.app/api/";
 
 const bot = new Telegraf(process.env.TOKEN);
-const SECRET_HASH = "32e58fbahey833349df3383dc910e180";
+// const SECRET_HASH = "32e58fbahey833349df3383dc910e180";
 
 //middleware to enable POST method from telegram
 app.use('/', (req, res) => {
@@ -21,10 +21,6 @@ app.use('/', (req, res) => {
   bot.launch();
 
   res.status(200).send('Entrei');
-})
-
-app.post('/', (req, res)=> {
-  res.status(201).send('Ok');
 })
 
 app.listen(80, () => console.log('listening on 80'));
