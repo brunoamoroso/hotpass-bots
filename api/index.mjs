@@ -19,7 +19,7 @@ app.use('/', (req, res) => {
     ctx.telegram.sendMessage('salve');
   });
 
-  bot.launch({webhook: {domain: process.env.WEBHOOK_DOMAIN}});
+  bot.launch();
 
   res.status(200).send('Entrei');
 })
