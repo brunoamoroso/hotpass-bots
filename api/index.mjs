@@ -5,19 +5,29 @@ import { configDotenv } from "dotenv";
 configDotenv();
 const app = express();
 
-const BASE_PATH = "https://telegram-bot-teste-psi.vercel.app/api/";
-
 const bot = new Telegraf(process.env.TOKEN);
 // const SECRET_HASH = "32e58fbahey833349df3383dc910e180";
 app.use(await bot.createWebhook({domain: process.env.WEBHOOK_DOMAIN, path: '/api/'}))
 
 app.use('/', (req, res) => {
   const {body, query } = req;
-  bot.launch();
+  
   bot.start(ctx => ctx.reply('Olá'))
-
+  bot.launch();
   res.send('Olá');
 })
+
+
+export default app;
+// app.post('/', (req, res) => {
+//     bot.launch({
+//         webhook: { domain: process.env.TOKEN}
+//     })
+//     res.status(200).send('ok');
+// })
+
+// app.listen(3000, () => { console.log('listening 3000')});
+
 // app.use(bot.web, (req, res) => {
 //   const {body, query} = req;
 //   bot.launch();
@@ -33,14 +43,3 @@ app.use('/', (req, res) => {
 
 //   res.send('Olá');
 // })
-
-
-export default app;
-// app.post('/', (req, res) => {
-//     bot.launch({
-//         webhook: { domain: process.env.TOKEN}
-//     })
-//     res.status(200).send('ok');
-// })
-
-// app.listen(3000, () => { console.log('listening 3000')});
