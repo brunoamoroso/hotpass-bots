@@ -11,24 +11,6 @@ const bot = new Telegraf(process.env.TOKEN);
 // const SECRET_HASH = "32e58fbahey833349df3383dc910e180";
 app.use(await bot.createWebhook({domain: process.env.WEBHOOK_DOMAIN}))
 
-
-//middleware to enable POST method from telegram
-app.use('/', (req, res) => {
-  const {body, query} = req;
-  bot.telegram.setWebhook(process.env.WEBHOOK_DOMAIN);
-  bot.command('start', ctx => ctx.reply('Hello'));
-  bot.telegram.sendMessage(6588724288, "Alá hein");
-  bot.hears("Oi", (ctx) => {
-    ctx.telegram.sendMessage('salve');
-  });
-
-  bot.launch();
-
-  res.send('Olá');
-})
-
-app.listen(80, () => console.log('listening on 80'));
-
 export default app;
 // app.post('/', (req, res) => {
 //     bot.launch({
