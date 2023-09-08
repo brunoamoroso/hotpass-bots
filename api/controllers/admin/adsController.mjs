@@ -42,7 +42,7 @@ class AdsController {
     },
     async (ctx) => {
       ctx.wizard.state.createAdsData.description = ctx.message.text;
-      ctx.reply('Quanto vai custar para acessar o seu conteúdo?');
+      ctx.reply('Quanto vai custar para acessar o seu conteúdo? Envie o valor utilizando vírgula ex: 29,90');
       return ctx.wizard.next();
     },
     async (ctx) => {
