@@ -32,14 +32,17 @@ class LinkAgreggatorModel{
         }
     }
 
-    deleteLink(linkId){
+    async deleteLink(linkId){
         try{
-            client.execute(`
+            await client.execute(`
                 delete Links filter .id = <uuid>$id
             `,{
                 id: linkId,
-            })
+            });
+
+            return {message: "Link Excluído!", status: 200}
         }catch(err){
+            return {message: "Tivemos um problema!", status: 500}
             console.log(err);
         }
     }
