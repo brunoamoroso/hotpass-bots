@@ -1,5 +1,5 @@
-import { Telegraf, Markup, Scenes } from "telegraf";
-import adsModel from "../../models/admin/adsModel.mjs";
+import { Markup, Scenes } from "telegraf";
+import * as packModel from "../../models/admin/packsModel.mjs";
 import mainMenu from "../../mainMenu.mjs";
 
 export const sendMenu = (ctx) => {
@@ -21,6 +21,7 @@ createPack.enter((ctx) => {
     "Comece me enviando a prévia do conteúdo. Pode ser uma foto ou um vídeo"
   );
   ctx.scene.session.step = 0;
+  ctx.scene.session.packData = { user_id: ctx.callbackQuery.message.from.id }
 });
 
 createPack.on(
@@ -29,15 +30,13 @@ createPack.on(
     //receives preview content
     if (ctx.scene.session.step === 0) {
       if (ctx.message.photo) {
-        ctx.scene.session.packData = {
-          previewPhoto: ctx.message.photo[0].file_id,
-        };
+        ctx.scene.session.packData.mediaPreview = ctx.message.photo[0].file_id;
+        ctx.scene.session.packData.mediaPreviewType = "photo";
         ctx.scene.session.step = 1;
         next();
       } else if (ctx.message.video) {
-        ctx.scene.session.packData = {
-          previewVideo: ctx.message.photo[0].file_id,
-        };
+        ctx.scene.session.packData.mediaPreview = ctx.message.video.file_id;
+        ctx.scene.session.packData.mediaPreviewType = "video";
         ctx.scene.session.step = 1;
         next();
       } else {
@@ -69,7 +68,7 @@ createPack.on(
   },
   (ctx, next) => {
     if (ctx.scene.session.step === 3) {
-      ctx.scene.session.packData.price = ctx.message.text.replace(".", ",");
+      ctx.scene.session.packData.price = ctx.message.text;
       ctx.reply(
         "Agora me envie o conteúdo do pack. Fotos e vídeos que serão enviados quando o cliente comprar o pack. Quando tiver enviado todo o conteúdo volte e clique no botão abaixo ⤵️",
         {
@@ -103,8 +102,6 @@ createPack.on(
           ctx.scene.session.packData.content.push({ type: "video", media: ctx.message.video.file_id });
         }
       }
-
-      console.log(ctx.scene.session);
     }else {
       next();
     }
@@ -115,9 +112,9 @@ createPack.action("contentPackDone", async (ctx) => {
   await ctx.reply("Certo, vamos para a revisão");
   ctx.scene.session.step = 5;
 
-  if(ctx.scene.session.packData.previewPhoto){
+  if(ctx.scene.session.packData.mediaPreviewType === "photo"){
    await ctx.replyWithPhoto(
-      ctx.scene.session.packData.previewPhoto,
+      ctx.scene.session.packData.mediaPreview,
       {
         parse_mode: "MarkdownV2",
         caption: ctx.scene.session.packData.description
@@ -125,9 +122,9 @@ createPack.action("contentPackDone", async (ctx) => {
     )
   }
 
-  if(ctx.scene.session.packData.previewVideo){
+  if(ctx.scene.session.packData.mediaPreviewType === "video"){
    await ctx.replyWithVideo(
-      ctx.scene.session.packData.previewVideo,
+      ctx.scene.session.packData.mediaPreview,
       {
         parse_mode: "MarkdownV2",
         caption: ctx.scene.session.packData.description
@@ -135,7 +132,7 @@ createPack.action("contentPackDone", async (ctx) => {
     )
   }
 
-  await ctx.reply("\*_O preço que será cobrado:_*\nR$" + ctx.scene.session.packData.price, {
+  await ctx.reply("\*_O preço que será cobrado:_*\nR$" + ctx.scene.session.packData.price.replace(".", "\\."), {
     parse_mode: "MarkdownV2"
   })
 
@@ -152,7 +149,9 @@ createPack.action("contentPackDone", async (ctx) => {
 });
 
 createPack.action("save", (ctx) => {
-  console.log("tá quase");
+  packModel.savePack(ctx.scene.session.packData).then(resp => {
+    ctx.reply(resp.message);
+  })
 })
 
 createPack.action("cancel", async (ctx) => {
