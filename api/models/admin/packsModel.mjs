@@ -2,14 +2,14 @@ import client from '../../db/conn.mjs';
 
 export const savePack = async (packData) =>{
     try{
-        client.execute(`
+        await client.execute(`
             with
                 content_data := <json>$content,
             insert Packs{
                 media_preview := <str>$media_preview,
                 media_preview_type := <str>$media_preview_type,
                 description := <str>$description,
-                price := <float32><str>$price,
+                price := <str>$price,
                 content := (
                     for item in json_array_unpack(content_data) union (
                         insert Content{
@@ -24,7 +24,7 @@ export const savePack = async (packData) =>{
                 ),
                 status := <str>$status,
                 who_created := (
-                    select Admin filter .telegram_id = <int64>$telegram_id
+                    select User filter .telegram_id = <int64>$telegram_id
                 ),
                 created_at := <datetime>$created_at,
                 updated_at := <datetime>$updated_at,
@@ -45,4 +45,18 @@ export const savePack = async (packData) =>{
     }catch(err){
         return {message: "Tivemos um problema ao salvar seu Pack!", status: 500}
     }
+}
+
+export const getPacks = () => {
+    return client.query(`
+    select Packs {
+        media_preview,
+        media_preview_type,
+        description,
+        price,
+        content: {
+            media_type,
+            media_id,
+        }
+    };`);
 }

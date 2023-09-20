@@ -17,24 +17,26 @@ class Auth {
           if (!existsUser) {
             client.execute(
               `
-                insert Customer{
-                    telegram_id := <int64>$telegram_id,
-                    first_name := <str>$first_name,
-                    last_name := <str>$last_name,
+                insert User{
+                    telegram_id := <int64>$telegramId,
+                    first_name := <str>$firstName,
+                    last_name := <str>$lastName,
                     username := <str>$username,
-                    interest_level := <str>$interest_level,
-                    created_at := <datetime>$created_at,
-                    updated_at := <datetime>$updated_at,
+                    role_type := <str>$roleType,
+                    interest_level := <str>$interestLevel,
+                    created_at := <datetime>$createdAt,
+                    updated_at := <datetime>$updatedAt,
                 };
             `,
               {
-                telegram_id: this.user.id,
-                first_name: this.user.first_name,
-                last_name: this.user.last_name,
+                telegramId: this.user.id,
+                firstName: this.user.first_name,
+                lastName: this.user.last_name,
                 username: this.user.username,
-                interest_level: "low",
-                created_at: new Date(),
-                updated_at: new Date(),
+                roleType: "customer",
+                interestLevel: "low",
+                createdAt: new Date(),
+                updatedAt: new Date(),
               }
             );
           }

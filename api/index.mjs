@@ -1,8 +1,11 @@
-import { Telegraf, Markup, Scenes, session } from "telegraf";
+import { Telegraf, Scenes, session } from "telegraf";
 import express from "express";
 import { configDotenv } from "dotenv";
+
+//Controllers
 import * as packs from "./controllers/admin/packsController.mjs";
 import * as links from "./controllers/admin/linkAgreggatorController.mjs";
+import * as admins from "./controllers/admin/adminsController.mjs";
 // import AuthController from "./controllers/authController.mjs";
 import mainMenu from "./mainMenu.mjs";
 import client from "./db/conn.mjs";
@@ -27,10 +30,21 @@ bot.start((ctx) => {
 const { enter, leave } = Scenes.Stage;
 
 //creates stage
-const stage = new Scenes.Stage([links.createLinkWizard, links.viewLinksWizard, packs.createPack]);
+const stage = new Scenes.Stage([
+  links.createLinkWizard,
+  links.viewLinks,
+  packs.createPack,
+  packs.viewPacks,
+  admins.createAdmin,
+  admins.viewAdmins,
+]);
 bot.use(session());
 bot.use(stage.middleware());
 
+bot.command("/menu", (ctx) => {
+  ctx.scene.leave();
+  mainMenu(ctx);
+})
 
 //Packs
 bot.action("packs", (ctx) => {
@@ -39,7 +53,11 @@ bot.action("packs", (ctx) => {
 
 bot.action("createPack", (ctx) => {
   ctx.scene.enter("createPackScene");
-})
+});
+
+bot.action("viewPacks", (ctx) => {
+  ctx.scene.enter("viewPacksScene");
+});
 
 //Links Agreggator
 bot.action("links", (ctx) => {
@@ -54,11 +72,25 @@ bot.action("viewLinks", (ctx) => {
   ctx.scene.enter("viewLinksScene");
 });
 
-links.viewLinksWizard.leave(ctx => {
+links.viewLinks.leave((ctx) => {
   setTimeout(() => {
-     mainMenu(ctx);
-  },2000);
+    mainMenu(ctx);
+  }, 2000);
+});
+
+//Create Admin
+bot.action("admins", (ctx) => {
+  admins.sendMenu(ctx);
+});
+
+bot.action("createAdmin", (ctx) => {
+  ctx.scene.enter("createAdminScene");
 })
+
+
+bot.action("viewAdmins", (ctx) => {
+  ctx.scene.enter("viewAdminsScene");
+});
 
 // local route
 app.use("/", (req, res) => {

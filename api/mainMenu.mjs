@@ -10,6 +10,7 @@ export default function mainMenu(ctx){
     ...Markup.inlineKeyboard([
       [Markup.button.callback("🔗 Agregador de Links", "links")],
       [Markup.button.callback("📹 Meus Packs", "packs")],
+      [Markup.button.callback("🦹‍♀️ Admins", "admins")],
     ])
       .oneTime()
       .resize(),

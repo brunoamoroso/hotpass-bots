@@ -17,7 +17,7 @@ import mainMenu from "../../mainMenu.mjs";
     );
   };
 
-  export const viewLinksWizard = new Scenes.WizardScene(
+  export const viewLinks = new Scenes.WizardScene(
     "viewLinksScene",
     (ctx) => {
       const LinkModel = new LinkAgreggatorModel();
