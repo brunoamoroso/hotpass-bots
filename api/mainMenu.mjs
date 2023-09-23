@@ -8,8 +8,9 @@ export default function mainMenu(ctx){
     caption: "Oi amor, achou meu bot é? Vem navegar comigo\\.",
     parse_mode: "MarkdownV2",
     ...Markup.inlineKeyboard([
-      [Markup.button.callback("🔗 Agregador de Links", "links")],
+      [Markup.button.callback("❤️‍🔥 Assinaturas", "subscriptions")],
       [Markup.button.callback("📹 Meus Packs", "packs")],
+      [Markup.button.callback("🔗 Agregador de Links", "links")],
       [Markup.button.callback("🦹‍♀️ Admins", "admins")],
     ])
       .oneTime()
