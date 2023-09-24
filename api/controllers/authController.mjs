@@ -1,17 +1,15 @@
-import { Telegraf, Markup } from "telegraf";
-import authModel from '../models/authModel.mjs';
+import * as authModel from "../models/authModel.mjs";
 
-class AuthController{
-    constructor(ctx){
-        this.ctx = ctx;
+export const authUser = async (ctx) => {
+  //user has id, is_bot, first_name, last_name, username, language_code
+  return await authModel.checkUserRole(ctx.from.id).then((resp) => {
+    if (resp) {
+      return resp.role_type;
+    } else {
+      authModel.saveUser(ctx.from);
+      return "customer";
     }
+  });
+};
 
-    registerUser(){
-        //user has id, is_bot, first_name, last_name, username, language_code
-        const user = this.ctx.update.message.from;
-        const auth = new authModel(user);
-        auth.saveUser();
-    }
-}
-
-export default AuthController;
+// export default AuthController;

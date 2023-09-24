@@ -6,7 +6,7 @@ import { configDotenv } from "dotenv";
 import * as packs from "./controllers/admin/packsController.mjs";
 import * as links from "./controllers/admin/linkAgreggatorController.mjs";
 import * as admins from "./controllers/admin/adminsController.mjs";
-// import AuthController from "./controllers/authController.mjs";
+import * as auth from "./controllers/authController.mjs";
 import mainMenu from "./mainMenu.mjs";
 import client from "./db/conn.mjs";
 
@@ -21,9 +21,9 @@ const bot = new Telegraf(process.env.TOKEN);
 
 //Initial message and entrypoint
 bot.start((ctx) => {
-  // const auth = new AuthController(ctx);
-  // auth.registerUser();
-  mainMenu(ctx);
+  auth.authUser(ctx).then(resp => {
+    mainMenu(ctx, resp);
+  });
 });
 
 //Handle Factories
@@ -41,12 +41,15 @@ const stage = new Scenes.Stage([
 bot.use(session());
 bot.use(stage.middleware());
 
+
 bot.command("/menu", (ctx) => {
   ctx.scene.leave();
   mainMenu(ctx);
-})
+});
+
 
 //Packs
+//Admin
 bot.action("packs", (ctx) => {
   packs.sendMenu(ctx);
 });
@@ -55,11 +58,18 @@ bot.action("createPack", (ctx) => {
   ctx.scene.enter("createPackScene");
 });
 
+//Customer
+bot.action("packsCustomer", (ctx) => {
+  packs.sendPacksCustomer(ctx);
+})
+//End of Packs
+
 bot.action("viewPacks", (ctx) => {
   ctx.scene.enter("viewPacksScene");
 });
 
 //Links Agreggator
+//Admin
 bot.action("links", (ctx) => {
   links.sendMenu(ctx);
 });
@@ -77,6 +87,12 @@ links.viewLinks.leave((ctx) => {
     mainMenu(ctx);
   }, 2000);
 });
+
+//Customer
+bot.action("linksCustomer", (ctx) => {
+  links.sendCustomerLinks(ctx);
+})
+//End of Link Agreggator
 
 //Create Admin
 bot.action("admins", (ctx) => {
