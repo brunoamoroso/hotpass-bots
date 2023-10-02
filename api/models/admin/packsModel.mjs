@@ -1,4 +1,5 @@
 import client from '../../db/conn.mjs';
+// const stripe = require('stripe')('sk_test_51Nw6d7FGAcKFUTUjnB9GwTvYBN7pZVt6sNswk9bXjWu3qwsSix7oKKppIbUmBfmrrCqVozbVYXNfDE118z7clwg800n38IWBkw');
 
 export const savePack = async (packData) =>{
     try{
@@ -8,6 +9,7 @@ export const savePack = async (packData) =>{
             insert Packs{
                 media_preview := <str>$media_preview,
                 media_preview_type := <str>$media_preview_type,
+                title := <str>$title,
                 description := <str>$description,
                 price := <str>$price,
                 content := (
@@ -32,6 +34,7 @@ export const savePack = async (packData) =>{
         `,{
             media_preview: packData.mediaPreview,
             media_preview_type: packData.mediaPreviewType,
+            title: packData.title,
             description: packData.description,
             price: packData.price,
             content: packData.content,
@@ -50,6 +53,8 @@ export const savePack = async (packData) =>{
 export const getPacks = () => {
     return client.query(`
     select Packs {
+        id,
+        title,
         media_preview,
         media_preview_type,
         description,
@@ -59,4 +64,23 @@ export const getPacks = () => {
             media_id,
         }
     };`);
+}
+
+
+export const getPackById = async (ctx) => {
+    return await client.querySingle(`
+        select Packs{
+            id,
+            media_preview,
+            description,
+            price,
+            contentQty := count(.content)
+        } filter .id = <uuid>$id
+    `, {
+        id: ctx
+    });
+}
+
+export const buyPack = () => {
+
 }

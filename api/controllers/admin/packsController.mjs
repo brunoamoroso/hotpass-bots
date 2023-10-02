@@ -1,4 +1,4 @@
-import { Markup, Scenes } from "telegraf";
+import { Markup, Scenes} from "telegraf";
 import * as packModel from "../../models/admin/packsModel.mjs";
 import mainMenu from "../../mainMenu.mjs";
 
@@ -21,7 +21,7 @@ createPack.enter((ctx) => {
     "Comece me enviando a prévia do conteúdo. Pode ser uma foto ou um vídeo"
   );
   ctx.scene.session.step = 0;
-  ctx.scene.session.packData = { user_id: ctx.callbackQuery.message.chat.id };
+  ctx.scene.session.packData = { user_id: ctx.chat.id };
 });
 
 createPack.on(
@@ -34,14 +34,9 @@ createPack.on(
         ctx.scene.session.packData.mediaPreviewType = "photo";
         ctx.scene.session.step = 1;
         next();
-      } else if (ctx.message.video) {
-        ctx.scene.session.packData.mediaPreview = ctx.message.video.file_id;
-        ctx.scene.session.packData.mediaPreviewType = "video";
-        ctx.scene.session.step = 1;
-        next();
       } else {
         ctx.reply(
-          "Desculpa, mas se não for foto ou vídeo não consigo avançar na criação de Pack"
+          "Desculpa, mas para o preview só aceitamos foto porque o telegram só aceita foto na hora de enviar a cobrança confirmado o produto que está sendo comprado"
         );
       }
     } else {
@@ -49,28 +44,38 @@ createPack.on(
     }
   },
   (ctx, next) => {
-    //receives description
     if (ctx.scene.session.step === 1) {
-      ctx.reply("Envie uma descrição para o pack");
+      ctx.reply("Envie um título para o seu pack");
       ctx.scene.session.step = 2;
     } else {
       next();
     }
   },
   (ctx, next) => {
+    //receives title
     if (ctx.scene.session.step === 2) {
-      ctx.scene.session.packData.description = ctx.message.text;
-      ctx.reply("Quanto vai custar o pack?");
+      ctx.scene.session.packData.title = ctx.message.text;
+      ctx.reply("Envie uma descrição para o pack");
       ctx.scene.session.step = 3;
     } else {
       next();
     }
   },
   (ctx, next) => {
+    //receives description
     if (ctx.scene.session.step === 3) {
+      ctx.scene.session.packData.description = ctx.message.text;
+      ctx.reply("Quanto vai custar o pack?");
+      ctx.scene.session.step = 4;
+    } else {
+      next();
+    }
+  },
+  (ctx, next) => {
+    if (ctx.scene.session.step === 4) {
       ctx.scene.session.packData.price = ctx.message.text;
       ctx.reply(
-        "Agora me envie o conteúdo do pack. Fotos e vídeos que serão enviados quando o cliente comprar o pack. Quando tiver enviado todo o conteúdo volte e clique no botão abaixo ⤵️",
+        "Agora me envie o conteúdo do pack. \nFotos e vídeos que serão enviados quando o cliente comprar o pack. \n\nQuando você tiver enviado todos os itens do pack e eles estiverem com os dois ✓✓. Então clique no botão abaixo ⤵️",
         {
           ...Markup.inlineKeyboard([
             Markup.button.callback(
@@ -80,13 +85,13 @@ createPack.on(
           ]),
         }
       );
-      ctx.scene.session.step = 4;
+      ctx.scene.session.step = 5;
     } else {
       next();
     }
   },
   (ctx, next) => {
-    if (ctx.scene.session.step === 4) {
+    if (ctx.scene.session.step === 5) {
       if (!ctx.scene.session.packData.content) {
         if (ctx.message.photo) {
           ctx.scene.session.packData.content = [
@@ -122,12 +127,12 @@ createPack.on(
 
 createPack.action("contentPackDone", async (ctx) => {
   await ctx.reply("Certo, vamos para a revisão");
-  ctx.scene.session.step = 5;
+  ctx.scene.session.step = 6;
 
   if (ctx.scene.session.packData.mediaPreviewType === "photo") {
     await ctx.replyWithPhoto(ctx.scene.session.packData.mediaPreview, {
       parse_mode: "MarkdownV2",
-      caption: ctx.scene.session.packData.description,
+      caption: ctx.scene.session.packData.title.replace(".", "\\.") + "\n" +ctx.scene.session.packData.description.replace(".", "\\."),
     });
   }
 
@@ -177,30 +182,80 @@ createPack.leave((ctx) => {
 export const viewPacks = new Scenes.BaseScene("viewPacksScene");
 
 viewPacks.enter((ctx) => {
-  packModel.getPacks().then(packs => {
-    packs.forEach(pack => {
-      if(pack.media_preview_type === "photo"){
+  packModel.getPacks().then((packs) => {
+    packs.forEach((pack) => {
+      if (pack.media_preview_type === "photo") {
         ctx.replyWithPhoto(pack.media_preview, {
           parse_mode: "MarkdownV2",
-          caption: pack.description + `\n\n\n\*_Preço cobrado pelo pack: _*\n${pack.price.replace(".", "\\.")}`,
+          caption:
+            pack.description +
+            `\n\n\n\*_Preço cobrado pelo pack: _*\n${pack.price.replace(
+              ".",
+              "\\."
+            )}`,
           ...Markup.inlineKeyboard([
             [Markup.button.callback("👀 Ver conteúdos do Pack", "viewContent")],
-            [Markup.button.callback("❌ Desativar Pack", "disablePack")]
-          ])
+            [Markup.button.callback("❌ Desativar Pack", "disablePack")],
+          ]),
         });
       }
-  
-      if(pack.media_preview_type === "video"){
+
+      if (pack.media_preview_type === "video") {
         ctx.replyWithVideo(pack.media_preview, {
           parse_mode: "MarkdownV2",
-          caption: pack.description + `\n\n\n\*_Preço cobrado pelo pack: _*\n${pack.price.replace(".", "\\.")}`,
+          caption:
+            pack.description +
+            `\n\n\n\*_Preço cobrado pelo pack: _*\n${pack.price.replace(
+              ".",
+              "\\."
+            )}`,
           ...Markup.inlineKeyboard([
             [Markup.button.callback("👀 Ver conteúdos do Pack", "viewContent")],
-            [Markup.button.callback("❌ Desativar Pack", "disablePack")]
-          ])
+            [Markup.button.callback("❌ Desativar Pack", "disablePack")],
+          ]),
         });
-
       }
-    })
-  })
-})
+    });
+  });
+});
+
+export const buyPacks = new Scenes.BaseScene("buyPacksScene");
+
+buyPacks.enter((ctx) => {
+  ctx.session.chat = ctx.chat.id;
+  packModel.getPacks().then((packs) => {
+    packs.forEach((pack) => {
+      if (pack.media_preview_type === "photo") {
+        ctx.replyWithPhoto(pack.media_preview, {
+          parse_mode: "Markdownv2",
+          caption: "\*" + pack.title.replace(".", "\\.") + "*" + "\n\n" + pack.description.replace(".", "\\."),
+          ...Markup.inlineKeyboard([
+            Markup.button.callback("Comprar - R$" + pack.price, pack.id),
+          ]),
+        });
+      } else if (pack.media_preview_type === "video") {
+      }
+    });
+  });
+});
+
+buyPacks.on("callback_query", async (ctx) => {
+  const pack = await packModel.getPackById(ctx.callbackQuery.data);
+  ctx.sendInvoice(
+    {
+      photo_url: await ctx.replyWithPhoto(pack.media_preview),
+      chat_id: ctx.chat.id,
+      title: "Pack",
+      description: `Esse pack contém ${pack.contentQty} itens para você`,
+      payload: {userId: ctx.chat.id, packId: ctx.callbackQuery.data},
+      provider_token: process.env.STRIPE_KEY,
+      currency: "BRL",
+      prices: [{ label: "Preço", amount: pack.price.replace(".", "") }],
+
+    },
+  );
+});
+
+buyPacks.on("message", (ctx) => {
+  console.log(ctx);
+});

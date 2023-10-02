@@ -35,6 +35,7 @@ const stage = new Scenes.Stage([
   links.viewLinks,
   packs.createPack,
   packs.viewPacks,
+  packs.buyPacks,
   admins.createAdmin,
   admins.viewAdmins,
 ]);
@@ -58,15 +59,19 @@ bot.action("createPack", (ctx) => {
   ctx.scene.enter("createPackScene");
 });
 
-//Customer
-bot.action("packsCustomer", (ctx) => {
-  packs.sendPacksCustomer(ctx);
-})
-//End of Packs
-
 bot.action("viewPacks", (ctx) => {
   ctx.scene.enter("viewPacksScene");
 });
+
+//Customer
+bot.action("packsCustomer", (ctx) => {
+  ctx.scene.enter("buyPacksScene");
+})
+
+bot.on("pre_checkout_query", async (ctx) => {
+    ctx.answerPreCheckoutQuery(true);
+});
+//End of Packs
 
 //Links Agreggator
 //Admin
@@ -110,6 +115,7 @@ bot.action("viewAdmins", (ctx) => {
 
 // local route
 app.use("/", (req, res) => {
+  console.log(req);
   bot.launch();
 });
 
