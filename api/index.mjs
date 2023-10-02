@@ -3,18 +3,19 @@ import express from "express";
 import { configDotenv } from "dotenv";
 
 //Controllers
-import * as packs from "./controllers/admin/packsController.mjs";
-import * as links from "./controllers/admin/linkAgreggatorController.mjs";
-import * as admins from "./controllers/admin/adminsController.mjs";
+import * as packs from "./controllers/packsController.mjs";
+import * as links from "./controllers/linkAgreggatorController.mjs";
+import * as admins from "./controllers/adminsController.mjs";
 import * as auth from "./controllers/authController.mjs";
+
 import mainMenu from "./mainMenu.mjs";
-import client from "./db/conn.mjs";
 
 configDotenv();
 const app = express();
 
 const bot = new Telegraf(process.env.TOKEN);
 // const SECRET_HASH = "32e58fbahey833349df3383dc910e180";
+
 
 // setting webhook to receive updates
 // app.use(await bot.createWebhook({domain: process.env.WEBHOOK_DOMAIN, path: '/api/'}))
@@ -25,9 +26,6 @@ bot.start((ctx) => {
     mainMenu(ctx, resp);
   });
 });
-
-//Handle Factories
-const { enter, leave } = Scenes.Stage;
 
 //creates stage
 const stage = new Scenes.Stage([
@@ -113,10 +111,11 @@ bot.action("viewAdmins", (ctx) => {
   ctx.scene.enter("viewAdminsScene");
 });
 
-// local route
-app.use("/", (req, res) => {
-  console.log(req);
-  bot.launch();
-});
+bot.launch();
+
+app.post("/:botId", (req, res) => {
+
+  console.log(req.params.botId);
+})
 
 export default app;

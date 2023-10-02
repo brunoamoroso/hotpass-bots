@@ -1,6 +1,6 @@
 import { Markup, Scenes} from "telegraf";
-import * as packModel from "../../models/admin/packsModel.mjs";
-import mainMenu from "../../mainMenu.mjs";
+import * as packModel from "../models/packsModel.mjs";
+import mainMenu from "../mainMenu.mjs";
 
 export const sendMenu = (ctx) => {
   ctx.reply("Entendido\\. O que você quer fazer nos Packs?", {

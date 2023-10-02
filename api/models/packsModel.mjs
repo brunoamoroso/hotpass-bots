@@ -1,4 +1,4 @@
-import client from '../../db/conn.mjs';
+import client from '../db/conn.mjs';
 // const stripe = require('stripe')('sk_test_51Nw6d7FGAcKFUTUjnB9GwTvYBN7pZVt6sNswk9bXjWu3qwsSix7oKKppIbUmBfmrrCqVozbVYXNfDE118z7clwg800n38IWBkw');
 
 export const savePack = async (packData) =>{

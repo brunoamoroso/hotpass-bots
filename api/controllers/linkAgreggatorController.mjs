@@ -1,5 +1,5 @@
 import { Markup, Scenes } from "telegraf";
-import * as linkModel from "../../models/admin/linkAgreggatorModel.mjs";
+import * as linkModel from "../models/linkAgreggatorModel.mjs";
 
 export const sendMenu = (ctx) => {
   ctx.reply("Entendido\\. O que você quer fazer no Agregador de Links?", {

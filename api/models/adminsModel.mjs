@@ -1,4 +1,4 @@
-import client from "../../db/conn.mjs";
+import client from "../db/conn.mjs";
 
 export const getAdmins = () =>{
     try{

@@ -1,5 +1,5 @@
 import { Markup, Scenes } from "telegraf";
-import * as adminsModel from "../../models/admin/adminsModel.mjs";
+import * as adminsModel from "../models/adminsModel.mjs";
 
 export const sendMenu = (ctx) => {
   ctx.reply("Entendido, o que você deseja fazer em Admins?", {
