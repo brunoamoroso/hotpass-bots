@@ -1,4 +1,4 @@
-import { Markup, Scenes} from "telegraf";
+import { Markup, Scenes } from "telegraf";
 import * as packModel from "../models/packsModel.mjs";
 import mainMenu from "../mainMenu.mjs";
 
@@ -132,7 +132,10 @@ createPack.action("contentPackDone", async (ctx) => {
   if (ctx.scene.session.packData.mediaPreviewType === "photo") {
     await ctx.replyWithPhoto(ctx.scene.session.packData.mediaPreview, {
       parse_mode: "MarkdownV2",
-      caption: ctx.scene.session.packData.title.replace(".", "\\.") + "\n" +ctx.scene.session.packData.description.replace(".", "\\."),
+      caption:
+        ctx.scene.session.packData.title.replace(".", "\\.") +
+        "\n" +
+        ctx.scene.session.packData.description.replace(".", "\\."),
     });
   }
 
@@ -228,7 +231,12 @@ buyPacks.enter((ctx) => {
       if (pack.media_preview_type === "photo") {
         ctx.replyWithPhoto(pack.media_preview, {
           parse_mode: "Markdownv2",
-          caption: "\*" + pack.title.replace(".", "\\.") + "*" + "\n\n" + pack.description.replace(".", "\\."),
+          caption:
+            "*" +
+            pack.title.replace(".", "\\.") +
+            "*" +
+            "\n\n" +
+            pack.description.replace(".", "\\."),
           ...Markup.inlineKeyboard([
             Markup.button.callback("Comprar - R$" + pack.price, pack.id),
           ]),
@@ -241,21 +249,42 @@ buyPacks.enter((ctx) => {
 
 buyPacks.on("callback_query", async (ctx) => {
   const pack = await packModel.getPackById(ctx.callbackQuery.data);
-  ctx.sendInvoice(
-    {
-      photo_url: await ctx.replyWithPhoto(pack.media_preview),
-      chat_id: ctx.chat.id,
-      title: "Pack",
-      description: `Esse pack contém ${pack.contentQty} itens para você`,
-      payload: {userId: ctx.chat.id, packId: ctx.callbackQuery.data},
-      provider_token: process.env.STRIPE_KEY,
-      currency: "BRL",
-      prices: [{ label: "Preço", amount: pack.price.replace(".", "") }],
+  ctx.sendInvoice({
+    photo_url: await ctx.replyWithPhoto(pack.media_preview),
+    chat_id: ctx.chat.id,
+    title: "Pack",
+    description: `Esse pack contém ${pack.contentQty} itens para você`,
+    payload: { userId: ctx.chat.id, packId: ctx.callbackQuery.data },
+    provider_token: process.env.STRIPE_KEY,
+    currency: "BRL",
+    prices: [{ label: "Preço", amount: pack.price.replace(".", "") }],
+  });
 
-    },
-  );
+  ctx.scene.session.pack_bought = pack.id;
+});
+
+buyPacks.on("pre_checkout_query", (ctx) => {
+  ctx.answerPreCheckoutQuery(true);
 });
 
 buyPacks.on("message", (ctx) => {
-  console.log(ctx);
+  if (ctx.message.successful_payment) {
+    ctx.reply("Toma meu pack 😏");
+    const payload = JSON.parse(ctx.message.successful_payment.invoice_payload);
+    packModel.getPackContentById(payload.packId).then((pack) => {
+      let adjustedPackContent = [];
+      pack[0].content.forEach((packContent) => {
+        adjustedPackContent.push({
+          media: packContent.media_id,
+          type: packContent.media_type,
+        });
+      });
+
+      ctx.sendMediaGroup(adjustedPackContent, {
+        protect_content: true,
+      });
+
+      packModel.insertPackBought(payload.userId, payload.packId);
+    });
+  }
 });
