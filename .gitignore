@@ -18,3 +18,4 @@ api/db/dbschema/migrations/00002.edgeql
 api/db/dbschema/migrations/00001.edgeql
 api/db/dbschema/migrations/.editing.13.edgeql
 api/db/dbschema/default.esdl
+package-lock.json
