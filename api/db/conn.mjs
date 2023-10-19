@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 async function connectDb() {
-  await mongoose.connect(`mongodb+srv://vercel-admin-user:hgIkBWZCz1mkAYKr@cluster0.bc1hsng.mongodb.net/swbotdb`);
+  await mongoose.connect(`mongodb+srv://vercel-admin-user:hgIkBWZCz1mkAYKr@cluster0.bc1hsng.mongodb.net/swbotdb?retryWrites=true&w=majority`);
   console.log(`Mongoose connected to db`);
   return;
 }

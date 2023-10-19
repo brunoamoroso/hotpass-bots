@@ -7,6 +7,9 @@ import * as admins from "./controllers/adminsController.mjs";
 import  * as auth from './controllers/authController.mjs';
 // import * as subscriptions from "./controllers/subscriptionsController.mjs";
 
+//Models
+import User from "./models/User.mjs";
+
 import mainMenu from "./mainMenu.mjs";
 
 const composer = new Composer();
@@ -104,8 +107,7 @@ composer.action("createAdmin", async (ctx) => {
 
 composer.action("viewAdmins", async (ctx) => {
   const admins = await User.find({ role_type: "admin" }).lean();
-  ctx.scene.enter("viewAdmins", {admins: admins});
+  ctx.scene.enter("viewAdmins", {admins});
 });
-// })
 
 export default composer;

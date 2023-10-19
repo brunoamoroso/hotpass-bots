@@ -12,40 +12,23 @@ export const sendMenu = (ctx) => {
 
 export const viewAdmins = new Scenes.BaseScene("viewAdmins");
 
-viewAdmins.enter(async (ctx, admins) => {
-  console.log(admins);
-  console.log(ctx);
-  // for (const admin of admins) {
-  //   await ctx.reply(
-  //             "*_Nome Completo: _*" +
-  //               admin.first_name +
-  //               " " +
-  //               admin.last_name +
-  //               "\n\n*_Nome de Usuário: _*",
-  //             {
-  //               parse_mode: "MarkdownV2",
-  //               ...Markup.inlineKeyboard([
-  //                 [Markup.button.callback("❌ Remover Admin", `${admin.id}`)],
-  //               ]),
-  //             }
-  //           );
-  }
-
-  // await Promise.all(admins.map(admin => {
-  //   return ctx.reply(
-  //         "*_Nome Completo: _*" +
-  //           admin.first_name +
-  //           " " +
-  //           admin.last_name +
-  //           "\n\n*_Nome de Usuário: _*",
-  //         {
-  //           parse_mode: "MarkdownV2",
-  //           ...Markup.inlineKeyboard([
-  //             [Markup.button.callback("❌ Remover Admin", `${admin.id}`)],
-  //           ]),
-  //         }
-  //       );
-  // }));
+viewAdmins.enter(async (ctx) => {
+  const admins = ctx.scene.state.admins;
+  await Promise.all(admins.map(admin => {
+    return ctx.reply(
+          "*_Nome Completo: _*" +
+            admin.first_name +
+            " " +
+            admin.last_name +
+            "\n\n*_Nome de Usuário: _*",
+          {
+            parse_mode: "MarkdownV2",
+            ...Markup.inlineKeyboard([
+              [Markup.button.callback("❌ Remover Admin", `${admin.id}`)],
+            ]),
+          }
+        );
+  }));
   
   // admins.forEach((admin) => {
   //   return ctx.reply(
@@ -98,8 +81,3 @@ createAdmin.on("message", async (ctx) => {
     );
   }
 });
-
-// adminsModel.saveAdmin(ctx.message.contact).then(resp => {
-//     ctx.reply(resp.message);
-//     ctx.scene.leave();
-// });
