@@ -1,7 +1,7 @@
 import express from "express";
 import { configDotenv } from "dotenv";
 import { Telegraf, Scenes, session } from "telegraf";
-import { Mongo } from '@telegraf/session/mongodb';
+import { Mongo } from "@telegraf/session/mongodb";
 import composer from "../index.mjs";
 
 //Controllers
@@ -14,7 +14,9 @@ configDotenv();
 
 const app = express();
 
-const bot = new Telegraf(process.env.SWBOTTOKEN);
+const bot = new Telegraf(process.env.SWBOTTOKEN, {
+  telegram: { webhookReply: false },
+});
 
 // setting webhook to receive updates
 app.use(
@@ -42,12 +44,11 @@ const stage = new Scenes.Stage([
 const store = Mongo({
   url: process.env.MONGODB_URI,
   database: "swbotdb",
-})
+});
 
-bot.use(session({store}));
+bot.use(session({ store }));
 bot.use(stage.middleware());
 bot.use(composer);
-
 
 bot.action("admins", async (ctx) => {
   admins.sendMenu(ctx);
@@ -60,10 +61,9 @@ bot.action("createAdmin", async (ctx) => {
 
 bot.command("sair", (ctx) => {
   ctx.scene.leave();
-})
+});
 
-
-bot.catch(err => {
+bot.catch((err) => {
   console.log("Error: " + err);
 });
 
