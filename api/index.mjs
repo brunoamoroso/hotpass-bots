@@ -1,49 +1,21 @@
-import { Composer, Scenes, session } from "telegraf";
+import { Composer } from "telegraf";
 
 //Controllers
-import * as packs from "./controllers/packsController.mjs";
-import * as links from "./controllers/linkAgreggatorController.mjs";
+// import * as packs from "./controllers/packsController.mjs";
+// import * as links from "./controllers/linkAgreggatorController.mjs";
 import * as admins from "./controllers/adminsController.mjs";
-import * as auth from "./controllers/authController.mjs";
-import * as subscriptions from "./controllers/subscriptionsController.mjs";
+import  * as auth from './controllers/authController.mjs';
+// import * as subscriptions from "./controllers/subscriptionsController.mjs";
 
 import mainMenu from "./mainMenu.mjs";
 
 const composer = new Composer();
 
 composer.start((ctx) => {
-  // auth.authUser(ctx).then((resp) => {
-  //   mainMenu(ctx, resp);
-  //   ctx.session.userRole = resp;
-  // });
-  mainMenu(ctx, "customer");
+  auth.authUser(ctx.from).then((role) => {
+    mainMenu(ctx, role);
+  });
 });
-
-// composer.action("botRouter", () => {
-//   // creates stage
-//   const stage = new Scenes.Stage([
-//     links.createLinkWizard,
-//     links.viewLinks,
-//     packs.createPack,
-//     packs.viewPacks,
-//     packs.buyPacks,
-//     admins.createAdmin,
-//     admins.viewAdmins,
-//     subscriptions.createSubscription,
-//     subscriptions.viewActiveSubscriptions,
-//     subscriptions.buySubscription,
-//   ]);
-
-//   bot.use(session());
-//   bot.use(stage.middleware());
-
-//   //Initial message and entrypoint
-//   bot.start((ctx) => {
-//     auth.authUser(ctx).then((resp) => {
-//       mainMenu(ctx, resp);
-//       ctx.session.userRole = resp;
-//     });
-//   });
 
 //   bot.command("/menu", (ctx) => {
 //     ctx.scene.leave();
@@ -121,18 +93,18 @@ composer.start((ctx) => {
 //   });
 //   //End of Link Agreggator
 
-//   //Create Admin
-//   bot.action("admins", (ctx) => {
-//     admins.sendMenu(ctx);
-//   });
+//Create Admin
+composer.action("admins", async (ctx) => {
+  admins.sendMenu(ctx);
+});
 
-//   bot.action("createAdmin", (ctx) => {
-//     ctx.scene.enter("createAdminScene");
-//   });
+composer.action("createAdmin", async (ctx) => {
+  ctx.scene.enter("createAdmin");
+});
 
-//   bot.action("viewAdmins", (ctx) => {
-//     ctx.scene.enter("viewAdminsScene");
-//   });
+composer.action("viewAdmins", async (ctx) => {
+  ctx.scene.enter("viewAdmins");
+});
 // })
 
 export default composer;

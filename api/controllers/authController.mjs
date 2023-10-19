@@ -1,15 +1,17 @@
-import * as authModel from "../models/authModel.mjs";
+import User from "../models/User.mjs";
 
-export const authUser = async (ctx) => {
-  //user has id, is_bot, first_name, last_name, username, language_code
-  return await authModel.checkUserRole(ctx.from.id).then((resp) => {
-    if (resp) {
-      return resp.role_type;
-    } else {
-      authModel.saveUser(ctx.from);
-      return "customer";
-    }
-  });
+export const authUser = async (userTg) => {
+  const user = await User.findOne({telegram_id: userTg.id});
+  if(!user){
+    const newUser = new User({
+      telegram_id: userTg.id,
+      first_name: userTg.first_name,
+      last_name: userTg.last_name,
+      username: userTg.username,
+    })
+    newUser.save();
+    return "customer";
+  }else{
+    return user.role_type;
+  }
 };
-
-// export default AuthController;
