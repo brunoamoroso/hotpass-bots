@@ -103,7 +103,8 @@ composer.action("createAdmin", async (ctx) => {
 });
 
 composer.action("viewAdmins", async (ctx) => {
-  ctx.scene.enter("viewAdmins");
+  const admins = await User.find({ role_type: "admin" }).lean();
+  ctx.scene.enter("viewAdmins", {admins: admins});
 });
 // })
 
