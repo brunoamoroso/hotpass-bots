@@ -40,7 +40,7 @@ const stage = new Scenes.Stage([
 ]);
 
 const store = Mongo({
-  url: "mongodb://localhost:27017",
+  url: process.env.MONGODB_URI,
   database: "swbotdb",
 })
 
