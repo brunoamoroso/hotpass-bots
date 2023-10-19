@@ -1,9 +1,12 @@
-import * as edgedb from "edgedb";
+import mongoose from "mongoose";
 
-const client = await edgedb.createClient({
-    dsn: 'edgedb://edgedb:Cy3c4MNCdq2Y5rG0jgAt5JGj@localhost:10701/edgedb',
-    tlsCA: "-----BEGIN CERTIFICATE-----\nMIIC0zCCAbugAwIBAgIRAPhjkMijLEuCqD9cKi/EXI4wDQYJKoZIhvcNAQELBQAw\nGDEWMBQGA1UEAwwNRWRnZURCIFNlcnZlcjAeFw0yMzA5MDQyMTU2MDZaFw00MjEx\nMDQyMTU2MDZaMBgxFjAUBgNVBAMMDUVkZ2VEQiBTZXJ2ZXIwggEiMA0GCSqGSIb3\nDQEBAQUAA4IBDwAwggEKAoIBAQDbmgghofVq7SP570+LMqcsBLbbaYj6QWjgsf4g\ngKzk0QVKHGd4YIdU4eI6WRTKOpu8yaZ6IIlz26kDD0xFl1ANR1URY3tX9M/QM1tQ\nNNovplmi6JWCnrxbdKQPUpChtj3UYhs4RtyVif2JV/CQ6dNuOi4Hbrrql6fBWEHT\neyeVtuk4aRil77RnfeSz9Fg2QPJpjx+ozQv//IdCIiCuZS/TBvby4NeQhiM5Y1bq\nkfh72w+bwnBjGPiyHbUYpBHXUe0Y3NYmleO4r4TCCC8pDecruoPjajbWK8zC+9vS\njMYUCYdsKALn/GSgw6J9MFFdVddjZ5gh4nQKMNLSBrJKymvXAgMBAAGjGDAWMBQG\nA1UdEQQNMAuCCWxvY2FsaG9zdDANBgkqhkiG9w0BAQsFAAOCAQEAlIwJozpavYke\nm7yOTT/qImv/P0Nf6MQoTzMCYkayDwZIFadaC64Y0YVG846/is+0lTYSKCkRazbJ\n7VRF4Dr3c1kXtOwqm4/8ARDoQXgUV9zBsKXhf0G7/2HzcHYmqziGoXz4NEi8npfZ\nsNWUJIs2ZbKUP3B/tH+5BbeGLDGVmU7fGdPEgDO95uZGC0fr+banbNwABhjwQrVx\nRUuF2UMwbaQT+F97gIKsBtRmg7nWMA31/yW2RNxIqUwZK/49Wj0HY2KdGDxUw5YI\n0bQn+Ej6iyxpCoM6WzHudfWrkWttmtNdmQz7Vb3HOqDQoUP/ujf7wu80wA8R7vD5\nLkniVlueeg==\n-----END CERTIFICATE-----\n",
-    tlsSecurity: 'default',
-});
+async function connectDb() {
+  await mongoose.connect(`mongodb+srv://vercel-admin-user:hgIkBWZCz1mkAYKr@cluster0.bc1hsng.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`);
+  console.log(`Mongoose connected to db`);
+  return;
+}
 
-export default client;
+
+connectDb().catch((err) => console.log(err));
+
+export default mongoose;

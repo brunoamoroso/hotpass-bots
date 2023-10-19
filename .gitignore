@@ -2,3 +2,24 @@ node_modules
 
 .env*
 .vercel
+api/db/edgedb.toml
+api/db/dbschema/migrations/00013.edgeql
+api/db/dbschema/migrations/00012.edgeql
+api/db/dbschema/migrations/00011.edgeql
+api/db/dbschema/migrations/00010.edgeql
+api/db/dbschema/migrations/00009.edgeql
+api/db/dbschema/migrations/00008.edgeql
+api/db/dbschema/migrations/00007.edgeql
+api/db/dbschema/migrations/00006.edgeql
+api/db/dbschema/migrations/00005.edgeql
+api/db/dbschema/migrations/00004.edgeql
+api/db/dbschema/migrations/00003.edgeql
+api/db/dbschema/migrations/00002.edgeql
+api/db/dbschema/migrations/00001.edgeql
+api/db/dbschema/migrations/.editing.13.edgeql
+api/db/dbschema/default.esdl
+package-lock.json
+.WebhookHelper
+package-lock.json
+.WebhookHelper
+package-lock.json

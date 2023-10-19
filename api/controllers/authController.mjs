@@ -1,17 +1,17 @@
-import { Telegraf, Markup } from "telegraf";
-import authModel from '../models/authModel.mjs';
+import User from "../models/User.mjs";
 
-class AuthController{
-    constructor(ctx){
-        this.ctx = ctx;
-    }
-
-    registerUser(){
-        //user has id, is_bot, first_name, last_name, username, language_code
-        const user = this.ctx.update.message.from;
-        const auth = new authModel(user);
-        auth.saveUser();
-    }
-}
-
-export default AuthController;
+export const authUser = async (userTg) => {
+  const user = await User.findOne({telegram_id: userTg.id});
+  if(!user){
+    const newUser = new User({
+      telegram_id: userTg.id,
+      first_name: userTg.first_name,
+      last_name: userTg.last_name,
+      username: userTg.username,
+    })
+    newUser.save();
+    return "customer";
+  }else{
+    return user.role_type;
+  }
+};
