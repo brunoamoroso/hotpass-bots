@@ -6,7 +6,7 @@ import composer from "../index.mjs";
 
 //Controllers
 // import * as packs from "./controllers/packsController.mjs";
-// import * as links from "./controllers/linkAgreggatorController.mjs";
+import * as links from "../controllers/linkAgreggatorController.mjs";
 import * as admins from "../controllers/adminsController.mjs";
 // import * as subscriptions from "./controllers/subscriptionsController.mjs";
 
@@ -27,8 +27,8 @@ app.use(
 // bot.start((ctx) => ctx.reply("oi"));
 // creates stage
 const stage = new Scenes.Stage([
-  // links.createLinkWizard,
-  // links.viewLinks,
+  links.createLink,
+  links.viewLinks,
   // packs.createPack,
   // packs.viewPacks,
   // packs.buyPacks,

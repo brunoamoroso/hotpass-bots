@@ -10,64 +10,42 @@ export const sendMenu = (ctx) => {
   });
 };
 
-export const viewAdmins = new Scenes.BaseScene("viewAdmins");
-
-viewAdmins.enter(async (ctx, next) => {
-  const admins = ctx.scene.state.admins;
-  // let promises = [];
-
-  // admins.forEach(admin => {
-  //   promises.push(
-  //     ctx.reply(
-  //       "*_Nome Completo: _*" +
-  //         admin.first_name +
-  //         " " +
-  //         admin.last_name +
-  //         "\n\n*_Nome de Usuário: _*",
-  //       {
-  //         parse_mode: "MarkdownV2",
-  //         ...Markup.inlineKeyboard([
-  //           [Markup.button.callback("❌ Remover Admin", `${admin.id}`)],
-  //         ]),
-  //       }
-  //     )
-  //   );
-  // });
-
-  // await Promise.all(promises);
-
-  admins.forEach((admin) => {
-    ctx.reply(
+export const viewAdmins = new Scenes.WizardScene("viewAdmins", 
+async (ctx) => {
+  // const admins = ctx.scene.state.admins;
+  const admins = await User.find({ role_type: "admin" }).lean();
+ 
+  for (let i = 0; i < admins.length; i++) {
+    await ctx.reply(
       "*_Nome Completo: _*" +
-        admin.first_name +
+        admins[i].first_name +
         " " +
-        admin.last_name +
+        admins[i].last_name +
         "\n\n*_Nome de Usuário: _*",
       {
         parse_mode: "MarkdownV2",
         ...Markup.inlineKeyboard([
-          [Markup.button.callback("❌ Remover Admin", `${admin.id}`)],
+          [Markup.button.callback("❌ Remover Admin", `${admins[i]._id}`)],
         ]),
       }
     );
-  });
-
-  // for (const admin of admins) {
-  //   await ctx.reply(
-  //             "*_Nome Completo: _*" +
-  //               admin.first_name +
-  //               " " +
-  //               admin.last_name +
-  //               "\n\n*_Nome de Usuário: _*",
-  //             {
-  //               parse_mode: "MarkdownV2",
-  //               ...Markup.inlineKeyboard([
-  //                 [Markup.button.callback("❌ Remover Admin", ${admin.id})],
-  //               ]),
-  //             }
-  //           );
-  // }
-});
+  }
+  return ctx.wizard.next();
+},
+async (ctx) => {
+  if(ctx.callbackQuery.data){
+    try{
+      const adminToRemove = ctx.callbackQuery.data;
+      await User.deleteOne({_id: adminToRemove});
+      ctx.reply("O admin foi removido com sucesso!");
+      return ctx.scene.leave();
+    }catch(err){
+      console.log(err);
+      return ctx.scene.leave();
+    }
+  }
+}
+);
 
 export const createAdmin = new Scenes.BaseScene("createAdmin");
 

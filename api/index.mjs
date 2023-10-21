@@ -2,13 +2,10 @@ import { Composer } from "telegraf";
 
 //Controllers
 // import * as packs from "./controllers/packsController.mjs";
-// import * as links from "./controllers/linkAgreggatorController.mjs";
+import * as links from "./controllers/linkAgreggatorController.mjs";
 import * as admins from "./controllers/adminsController.mjs";
 import  * as auth from './controllers/authController.mjs';
 // import * as subscriptions from "./controllers/subscriptionsController.mjs";
-
-//Models
-import User from "./models/User.mjs";
 
 import mainMenu from "./mainMenu.mjs";
 
@@ -70,31 +67,31 @@ composer.start((ctx) => {
 //   });
 //   //End of Packs
 
-//   //Links Agreggator
-//   //Admin
-//   bot.action("links", (ctx) => {
-//     links.sendMenu(ctx);
-//   });
+  //Links Agreggator
+  //Admin
+  composer.action("links", (ctx) => {
+    links.sendMenu(ctx);
+  });
 
-//   bot.action("createLink", (ctx) => {
-//     ctx.scene.enter("createLinkScene");
-//   });
+  composer.action("createLink", (ctx) => {
+    ctx.scene.enter("createLink");
+  });
 
-//   bot.action("viewLinks", (ctx) => {
-//     ctx.scene.enter("viewLinksScene");
-//   });
+  composer.action("viewLinks", (ctx) => {
+    ctx.scene.enter("viewLinks");
+  });
 
-//   links.viewLinks.leave((ctx) => {
-//     setTimeout(() => {
-//       mainMenu(ctx);
-//     }, 2000);
-//   });
+  // links.viewLinks.leave((ctx) => {
+  //   setTimeout(() => {
+  //     mainMenu(ctx);
+  //   }, 2000);
+  // });
 
-//   //Customer
-//   bot.action("linksCustomer", (ctx) => {
-//     links.sendCustomerLinks(ctx);
-//   });
-//   //End of Link Agreggator
+  // //Customer
+  // composer.action("linksCustomer", (ctx) => {
+  //   links.sendCustomerLinks(ctx);
+  // });
+  //End of Link Agreggator
 
 //Create Admin
 composer.action("admins", async (ctx) => {
@@ -106,8 +103,7 @@ composer.action("createAdmin", async (ctx) => {
 });
 
 composer.action("viewAdmins", async (ctx) => {
-  const admins = await User.find({ role_type: "admin" }).lean();
-  ctx.scene.enter("viewAdmins", {admins});
+  ctx.scene.enter("viewAdmins");
 });
 
 export default composer;
