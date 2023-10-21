@@ -14,9 +14,7 @@ configDotenv();
 
 const app = express();
 
-const bot = new Telegraf(process.env.SWBOTTOKEN, {
-  telegram: { webhookReply: false },
-});
+const bot = new Telegraf(process.env.SWBOTTOKEN);
 
 // setting webhook to receive updates
 app.use(
