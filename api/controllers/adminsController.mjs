@@ -12,23 +12,64 @@ export const sendMenu = (ctx) => {
 
 export const viewAdmins = new Scenes.BaseScene("viewAdmins");
 
-viewAdmins.enter(async (ctx) => {
+viewAdmins.enter(async (ctx, next) => {
   const admins = ctx.scene.state.admins;
-  admins.forEach((admin) => {
-    ctx.reply(
-      "*_Nome Completo: _*" +
-        admin.first_name +
-        " " +
-        admin.last_name +
-        "\n\n*_Nome de Usuário: _*",
-      {
-        parse_mode: "MarkdownV2",
-        ...Markup.inlineKeyboard([
-          [Markup.button.callback("❌ Remover Admin", `${admin.id}`)],
-        ]),
-      }
+  let promises = [];
+
+  admins.forEach(admin => {
+    promises.push(
+      ctx.reply(
+        "*_Nome Completo: _*" +
+          admin.first_name +
+          " " +
+          admin.last_name +
+          "\n\n*_Nome de Usuário: _*",
+        {
+          parse_mode: "MarkdownV2",
+          ...Markup.inlineKeyboard([
+            [Markup.button.callback("❌ Remover Admin", `${admin.id}`)],
+          ]),
+        }
+      )
     );
   });
+
+  await Promise.all(promises);
+
+  // admins.forEach(async (admin) => {
+
+  //   await ctx.reply(
+  //     "*_Nome Completo: _*" +
+  //       admin.first_name +
+  //       " " +
+  //       admin.last_name +
+  //       "\n\n*_Nome de Usuário: _*",
+  //     {
+  //       parse_mode: "MarkdownV2",
+  //       ...Markup.inlineKeyboard([
+  //         [Markup.button.callback("❌ Remover Admin", `${admin.id}`)],
+  //       ]),
+  //     }
+  //   );
+
+  //   next();
+  // });
+
+  // for (const admin of admins) {
+  //   await ctx.reply(
+  //             "*_Nome Completo: _*" +
+  //               admin.first_name +
+  //               " " +
+  //               admin.last_name +
+  //               "\n\n*_Nome de Usuário: _*",
+  //             {
+  //               parse_mode: "MarkdownV2",
+  //               ...Markup.inlineKeyboard([
+  //                 [Markup.button.callback("❌ Remover Admin", ${admin.id})],
+  //               ]),
+  //             }
+  //           );
+  // }
 });
 
 export const createAdmin = new Scenes.BaseScene("createAdmin");
