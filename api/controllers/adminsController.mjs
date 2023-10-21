@@ -37,7 +37,7 @@ viewAdmins.enter(async (ctx, next) => {
   // await Promise.all(promises);
 
   admins.forEach((admin) => {
-    return ctx.reply(
+    ctx.reply(
       "*_Nome Completo: _*" +
         admin.first_name +
         " " +
