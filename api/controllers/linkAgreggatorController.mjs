@@ -123,13 +123,13 @@ export const createLink = new Scenes.WizardScene(
   }
 );
 
-export const sendCustomerLinks = (ctx) => {
-  const links = Link.find().lean();
+export const sendCustomerLinks = async (ctx) => {
+  const links = await Link.find().lean();
   let keyboardBtns = [];
   links.forEach((link) => {
     keyboardBtns.push([Markup.button.url(link.name, link.url)]);
   });
-  ctx.reply("Teste dos Links do Consumidor", {
+  await ctx.reply("Teste dos Links do Consumidor", {
     ...Markup.inlineKeyboard(keyboardBtns),
   });
   ctx.scene.leave();
