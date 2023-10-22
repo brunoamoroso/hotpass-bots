@@ -1,5 +1,5 @@
 import { Markup, Scenes } from "telegraf";
-import * as linkModel from "../models/linkAgreggatorModel.mjs";
+import Link from "../models/Link.mjs";
 
 export const sendMenu = (ctx) => {
   ctx.reply("Entendido\\. O que você quer fazer no Agregador de Links?", {
@@ -14,50 +14,52 @@ export const sendMenu = (ctx) => {
 };
 
 export const viewLinks = new Scenes.WizardScene(
-  "viewLinksScene",
-  (ctx) => {
-    linkModel.getLinks().then((links) => {
-      if (links != 0) {
-        links.forEach((link) => {
-          ctx.reply(`${link.name}`, {
-            parse_mode: "MarkdownV2",
-            ...Markup.inlineKeyboard([
-              Markup.button.callback("❌ Excluir", `${link.id}`),
-            ]).oneTime(),
-          });
-        });
-      } else {
-        ctx.reply(
-          "Você não tem nenhum link cadastrado ainda. Vou agilizar e te mostrar o menu principal."
-        );
-        ctx.scene.leave();
-      }
-    });
+  "viewLinks",
+  async (ctx) => {
+    const links = await Link.find().lean();
+
+    if (!links) {
+      await ctx.reply(
+        "Você não tem nenhum link cadastrado ainda. Vou agilizar e te mostrar o menu principal."
+      );
+
+      return ctx.scene.leave();
+    }
+
+    for (let i = 0; i < links.length; i++) {
+      await ctx.reply(`${links[i].name}`, {
+        parse_mode: "MarkdownV2",
+        ...Markup.inlineKeyboard([
+          Markup.button.callback("❌ Excluir", `${links[i]._id}`),
+        ]).oneTime(),
+      });
+    }
+
     return ctx.wizard.next();
   },
   async (ctx) => {
-    const linkId = ctx.callbackQuery.data;
-    const deleteLink = await linkModel.deleteLink(linkId);
 
-    await ctx.reply(
-      deleteLink.message +
-        "\n____________________________________________________"
-    );
+    if(ctx.callbackQuery.data){
 
-    links = await linkModel.getLinks();
+      const linkId = ctx.callbackQuery.data;
+      try {
+        await Link.deleteOne({ id: linkId });
 
-    if (links != 0) {
-      ctx.wizard.selectStep(0);
-      return ctx.wizard.step(ctx);
-    } else {
-      await ctx.reply("Você excluiu todos os seus links");
-      ctx.scene.leave();
+        await ctx.reply(
+          "O link foi deletado" +
+          "\n____________________________________________________"
+        );
+      } catch (err) {
+        await ctx.reply(err);
+      }
     }
+
+    return ctx.scene.leave();
   }
 );
 
-export const createLinkWizard = new Scenes.WizardScene(
-  "createLinkScene",
+export const createLink = new Scenes.WizardScene(
+  "createLink",
   (ctx) => {
     ctx.reply(
       "Envie o nome que os usuários vão ver no agregador de links. Ex: Instagram"
@@ -98,8 +100,13 @@ export const createLinkWizard = new Scenes.WizardScene(
   async (ctx) => {
     switch (ctx.callbackQuery.data) {
       case "save":
-        const save = await linkModel.saveLink(ctx.wizard.state.createLink);
-        ctx.reply(save.message);
+        try {
+          const newLink = new Link(ctx.wizard.state.createLink);
+          newLink.save();
+          ctx.reply("O link foi criado com sucesso!");
+        } catch (err) {
+          ctx.reply(err);
+        }
         return ctx.scene.leave();
         break;
 
@@ -116,16 +123,14 @@ export const createLinkWizard = new Scenes.WizardScene(
   }
 );
 
-export const sendCustomerLinks = (ctx) => {
-  linkModel.getLinks().then((links) => {
-    let keyboardBtns = [];
-    links.forEach((link) => {
-      keyboardBtns.push([Markup.button.url(link.name, link.url)]);
-    });
-
-    ctx.reply("Teste dos Links do Consumidor", {
-      ...Markup.inlineKeyboard(keyboardBtns)
-    })
-
+export const sendCustomerLinks = async (ctx) => {
+  const links = await Link.find().lean();
+  let keyboardBtns = [];
+  links.forEach((link) => {
+    keyboardBtns.push([Markup.button.url(link.name, link.url)]);
   });
+  await ctx.reply("Teste dos Links do Consumidor", {
+    ...Markup.inlineKeyboard(keyboardBtns),
+  });
+  ctx.scene.leave();
 };

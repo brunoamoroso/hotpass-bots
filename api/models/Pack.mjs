@@ -1,5 +1,48 @@
-// import client from "../db/conn.mjs";
-// // const stripe = require('stripe')('sk_test_51Nw6d7FGAcKFUTUjnB9GwTvYBN7pZVt6sNswk9bXjWu3qwsSix7oKKppIbUmBfmrrCqVozbVYXNfDE118z7clwg800n38IWBkw');
+import mongoose from "../db/conn.mjs";
+import { Schema } from "mongoose";
+
+const Pack = mongoose.model(
+  "Pack",
+  new Schema(
+    {
+      media_preview: {
+        type: String,
+        required: true,
+      },
+      media_preview_type: {
+        type: String,
+        required: true,
+      },
+      title: {
+        type: String,
+        required: true,
+      },
+      description: {
+        type: String,
+        required: true,
+      },
+      price: {
+        type: String,
+        required: true,
+      },
+      content: {
+        type: Array,
+        required: true,
+      },
+      status: {
+        type: String,
+        default: "enabled",
+      },
+      who_created: {
+        type: Object,
+        required: true,
+      },
+    },
+    { timestamps: true }
+  )
+);
+
+export default Pack;
 
 // export const savePack = async (packData) => {
 //   try {
@@ -111,7 +154,7 @@
 //             select Packs{
 //                 @date_bought := <datetime>$datebought
 //             } filter .id = <uuid>$packId
-//            ) 
+//            )
 //         }
 //     `,{
 //         userId: userId,
