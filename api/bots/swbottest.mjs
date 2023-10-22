@@ -9,7 +9,7 @@ import * as packs from "../controllers/packsController.mjs";
 import * as links from "../controllers/linkAgreggatorController.mjs";
 import * as admins from "../controllers/adminsController.mjs";
 import * as subscriptions from "../controllers/subscriptionsController.mjs";
-import { connectDb } from "../db/conn.mjs";
+// import { connectDb } from "../db/conn.mjs";
 
 configDotenv();
 
