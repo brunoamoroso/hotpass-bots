@@ -12,7 +12,7 @@ import mainMenu from "./mainMenu.mjs";
 const composer = new Composer();
 
 composer.start((ctx) => {
-  auth.authUser(ctx.from).then((role) => {
+  auth.authUser(ctx.from, ctx.session.db).then((role) => {
     mainMenu(ctx, role);
   });
 });
@@ -32,14 +32,14 @@ composer.action("viewActiveSubscriptionsPlan", (ctx) => {
 });
 
 //Customer
-composer.action("subscriptionsCustomer", async (ctx) => {
-  await ctx.scene.enter("buySubscription");
-});
+// composer.action("subscriptionsCustomer", async (ctx) => {
+//   await ctx.scene.enter("buySubscription");
+// });
 
-//End of Subscriptions
+// End of Subscriptions
 
-//Packs
-//Admin
+// Packs
+// Admin
 composer.action("packs", (ctx) => {
   packs.sendMenu(ctx);
 });
@@ -60,10 +60,10 @@ composer.action("packsCustomer", async (ctx) => {
 composer.on("pre_checkout_query", (ctx) => {
   ctx.answerPreCheckoutQuery(true);
 });
-//End of Packs
+// End of Packs
 
-//Links Agreggator
-//Admin
+// Links Agreggator
+// Admin
 composer.action("links", (ctx) => {
   links.sendMenu(ctx);
 });
@@ -76,20 +76,19 @@ composer.action("viewLinks", (ctx) => {
   ctx.scene.enter("viewLinks");
 });
 
-// links.viewLinks.leave((ctx) => {
-//   setTimeout(() => {
-//     mainMenu(ctx);
-//   }, 2000);
-// });
+// // links.viewLinks.leave((ctx) => {
+// //   setTimeout(() => {
+// //     mainMenu(ctx);
+// //   }, 2000);
+// // });
 
-//Customer
+// Customer
 composer.action("linksCustomer", (ctx) => {
-  console.log(ctx.session);
   links.sendCustomerLinks(ctx);
 });
-//End of Link Agreggator
+// End of Link Agreggator
 
-//Create Admin
+// Create Admin
 composer.action("admins", async (ctx) => {
   admins.sendMenu(ctx);
 });

@@ -1,5 +1,6 @@
 import { Markup, Scenes } from "telegraf";
-import User from "../models/User.mjs";
+import userSchema from "../schemas/User.mjs";
+import { getModelByTenant } from "../utils/tenantUtils.mjs";
 
 export const sendMenu = (ctx) => {
   ctx.reply("Entendido, o que você deseja fazer em Admins?", {
@@ -12,7 +13,7 @@ export const sendMenu = (ctx) => {
 
 export const viewAdmins = new Scenes.WizardScene("viewAdmins", 
 async (ctx) => {
-  // const admins = ctx.scene.state.admins;
+  const User = getModelByTenant(ctx.session.db, "User", userSchema);
   const admins = await User.find({ role_type: "admin" }).lean();
  
   for (let i = 0; i < admins.length; i++) {
@@ -33,6 +34,7 @@ async (ctx) => {
   return ctx.wizard.next();
 },
 async (ctx) => {
+  const User = getModelByTenant(ctx.session.db, "User", userSchema);
   if(ctx.callbackQuery.data){
     try{
       const adminToRemove = ctx.callbackQuery.data;
@@ -50,13 +52,13 @@ async (ctx) => {
 export const createAdmin = new Scenes.BaseScene("createAdmin");
 
 createAdmin.enter(async (ctx) => {
-  console.log(ctx.session);
   ctx.reply(
     "Certo, me envie o contato de quem será um novo Administrador do Bot"
   );
 });
 
 createAdmin.on("message", async (ctx) => {
+  const User = getModelByTenant(ctx.session.db, "User", userSchema);
   if (ctx.message.contact) {
     const userTg = ctx.message.contact;
     const user = new User({

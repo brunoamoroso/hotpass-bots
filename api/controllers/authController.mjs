@@ -1,6 +1,9 @@
-import User from "../models/User.mjs";
+import { getModelByTenant } from "../utils/tenantUtils.mjs";
+import userSchema from '../schemas/User.mjs';
 
-export const authUser = async (userTg) => {
+export const authUser = async (userTg, db) => {
+  const User = getModelByTenant(db, "User", userSchema);
+
   const user = await User.findOne({telegram_id: userTg.id});
   if(!user){
     const newUser = new User({

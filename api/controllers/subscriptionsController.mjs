@@ -1,6 +1,7 @@
 import { Markup, Scenes } from "telegraf";
-import Subscription from "../models/Subscriptions.mjs";
+import subscriptionSchema from "../schemas/Subscriptions.mjs";
 import cycleFormat from "../utils/cycleFormat.mjs";
+import { getModelByTenant } from "../utils/tenantUtils.mjs";
 
 export const sendMenu = (ctx) => {
   ctx.reply("O que você quer fazer nas assinaturas?", {
@@ -55,6 +56,7 @@ export const createSubscriptionPlan = new Scenes.WizardScene(
   },
   async (ctx) => {
     try {
+      const Subscription = getModelByTenant(ctx.session.db, "Subscription", subscriptionSchema);
       ctx.scene.session.planData.duration = ctx.message.text;
       const planData = ctx.scene.session.planData;
       const newSubscription = new Subscription({
@@ -105,6 +107,7 @@ export const viewActiveSubscriptionsPlan = new Scenes.WizardScene(
 export const buySubscription = new Scenes.BaseScene("buySubscription");
 
 buySubscription.enter(async (ctx) => {
+  const Subscription = getModelByTenant(ctx.session.db, "Subscription", subscriptionSchema);
   const subscriptions = await Subscription.find({ status: "enabled" }).lean();
   let keyboardBtns = [];
   subscriptions.forEach((subscription) => {
