@@ -1,7 +1,7 @@
 import { Markup, Scenes } from "telegraf";
-import Pack from "../models/Pack.mjs";
-import User from "../models/User.mjs";
-// import mainMenu from "../mainMenu.mjs";
+import packSchema from "../schemas/Pack.mjs";
+import userSchema from "../schemas/User.mjs";
+import { getModelByTenant } from "../utils/tenantUtils.mjs";
 
 //only for Admins
 export const sendMenu = (ctx) => {
@@ -18,12 +18,11 @@ export const sendMenu = (ctx) => {
 
 export const createPack = new Scenes.BaseScene("createPack");
 
-createPack.enter((ctx) => {
-  ctx.reply(
+createPack.enter(async (ctx) => {
+  await ctx.reply(
     "Comece me enviando a prévia do conteúdo. Pode ser uma foto ou um vídeo"
   );
   ctx.scene.session.step = 0;
-  console.log(ctx.chat);
   ctx.scene.session.packData = {
     user: {
       telegram_id: ctx.chat.id,
@@ -45,7 +44,7 @@ createPack.on(
         ctx.scene.session.step = 1;
         next();
       } else {
-        ctx.reply(
+        await ctx.reply(
           "Desculpa, mas para o preview só aceitamos foto porque o telegram só aceita foto na hora de enviar a cobrança confirmado o produto que está sendo comprado"
         );
       }
@@ -55,7 +54,7 @@ createPack.on(
   },
   async (ctx, next) => {
     if (ctx.scene.session.step === 1) {
-      ctx.reply("Envie um título para o seu pack");
+      await ctx.reply("Envie um título para o seu pack");
       ctx.scene.session.step = 2;
     } else {
       next();
@@ -65,7 +64,7 @@ createPack.on(
     //receives title
     if (ctx.scene.session.step === 2) {
       ctx.scene.session.packData.title = ctx.message.text;
-      ctx.reply("Envie uma descrição para o pack");
+      await ctx.reply("Envie uma descrição para o pack");
       ctx.scene.session.step = 3;
     } else {
       next();
@@ -75,7 +74,7 @@ createPack.on(
     //receives description
     if (ctx.scene.session.step === 3) {
       ctx.scene.session.packData.description = ctx.message.text;
-      ctx.reply("Quanto vai custar o pack?");
+      await ctx.reply("Quanto vai custar o pack?");
       ctx.scene.session.step = 4;
     } else {
       next();
@@ -84,7 +83,7 @@ createPack.on(
   async (ctx, next) => {
     if (ctx.scene.session.step === 4) {
       ctx.scene.session.packData.price = ctx.message.text;
-      ctx.reply(
+      await ctx.reply(
         "Agora me envie o conteúdo do pack. \nFotos e vídeos que serão enviados quando o cliente comprar o pack. \n\nQuando você tiver enviado todos os itens do pack e eles estiverem com os dois ✓✓. Então clique no botão abaixo ⤵️",
         {
           ...Markup.inlineKeyboard([
@@ -178,6 +177,7 @@ createPack.action("contentPackDone", async (ctx) => {
 });
 
 createPack.action("save", async (ctx) => {
+  const Pack = getModelByTenant(ctx.session.db, "Pack", packSchema);
   try {
     const packData = ctx.scene.session.packData;
     const newPack = new Pack({
@@ -192,7 +192,7 @@ createPack.action("save", async (ctx) => {
 
     newPack.save();
 
-    ctx.reply("O pack foi criado com sucesso!");
+    await ctx.reply("O pack foi criado com sucesso!");
 
     return ctx.scene.leave();
   } catch (err) {
@@ -202,18 +202,17 @@ createPack.action("save", async (ctx) => {
 
 createPack.action("cancel", async (ctx) => {
   await ctx.reply("Saindo da Criação de Packs \n________________________");
-  ctx.scene.leave();
+  return ctx.scene.leave();
 });
 
 export const viewPacks = new Scenes.WizardScene(
   "viewPacks",
   async (ctx) => {
+    const Pack = getModelByTenant(ctx.session.db, "Pack", packSchema);
     const packs = await Pack.find({ status: "enabled" }).lean();
 
     for (let i = 0; i < packs.length; i++) {
       const pack = packs[i];
-      console.log(`i: ${i}`);
-      console.log(pack);
       if (pack.media_preview_type === "photo") {
         await ctx.replyWithPhoto(pack.media_preview, {
           parse_mode: "MarkdownV2",
@@ -262,6 +261,7 @@ export const buyPacks = new Scenes.BaseScene("buyPacks");
 
 buyPacks.enter(async (ctx) => {
   ctx.session.user = ctx.chat;
+  const Pack = getModelByTenant(ctx.session.db, "Pack", packSchema);
   const packs = await Pack.find({ status: "enabled" }).lean();
 
   for (let i = 0; i < packs.length; i++) {
@@ -287,6 +287,7 @@ buyPacks.enter(async (ctx) => {
 });
 
 buyPacks.on("callback_query", async (ctx) => {
+  const Pack = getModelByTenant(ctx.session.db, "Pack", packSchema);
   const pack = await Pack.findById(ctx.callbackQuery.data);
   ctx.sendInvoice({
     photo_url: await ctx.replyWithPhoto(pack.media_preview),
@@ -301,6 +302,8 @@ buyPacks.on("callback_query", async (ctx) => {
 });
 
 buyPacks.on("message", async (ctx) => {
+  const Pack = getModelByTenant(ctx.session.db, "Pack", packSchema);
+  const User = getModelByTenant(ctx.session.db, "User", userSchema);
   if (ctx.message.successful_payment) {
     await ctx.reply("Toma meu pack 😏");
     const payload = JSON.parse(ctx.message.successful_payment.invoice_payload);

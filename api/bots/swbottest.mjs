@@ -9,7 +9,6 @@ import * as packs from "../controllers/packsController.mjs";
 import * as links from "../controllers/linkAgreggatorController.mjs";
 import * as admins from "../controllers/adminsController.mjs";
 import * as subscriptions from "../controllers/subscriptionsController.mjs";
-// import { connectDb } from "../db/conn.mjs";
 
 configDotenv();
 
@@ -36,7 +35,7 @@ const stage = new Scenes.Stage([
   admins.viewAdmins,
   subscriptions.createSubscriptionPlan,
   subscriptions.viewActiveSubscriptionsPlan,
-  subscriptions.buySubscription,
+  // subscriptions.buySubscription,
 ]);
 
 const store = Mongo({
@@ -45,15 +44,13 @@ const store = Mongo({
 });
 
 bot.use(session({ store }));
-// bot.use((ctx) => {
-//   connectDb(ctx.session.db).catch(err => console.log(err));
-// });
 bot.use(stage.middleware());
+bot.use(async (ctx, next) => { ctx.session.db = "swbotdb"; return next();});
 bot.use(composer);
 
 bot.command("sair", async (ctx) => {
- await ctx.scene.leave();
- return ctx.reply("Saindo");
+  await ctx.scene.leave();
+  return ctx.reply("Saindo");
 });
 
 bot.catch((err) => {
