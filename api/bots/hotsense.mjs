@@ -35,7 +35,7 @@ const stage = new Scenes.Stage([
   admins.viewAdmins,
   subscriptions.createSubscriptionPlan,
   subscriptions.viewActiveSubscriptionsPlan,
-  // subscriptions.buySubscription,
+  subscriptions.buySubscription,
 ]);
 
 const store = Mongo({
@@ -45,7 +45,12 @@ const store = Mongo({
 
 bot.use(session({ store }));
 bot.use(stage.middleware());
-bot.use(async (ctx, next) => { ctx.session.db = "hotsense"; return next();});
+bot.use(async (ctx, next) => {
+  ctx.session.db = "hotsense";
+  ctx.session.stripe = process.env.HOTSENSE_STRIPE
+  ctx.session.productId = "prod_OvIXeLdH4iwsBx";
+  return next();
+});
 bot.use(composer);
 
 bot.command("sair", async (ctx) => {

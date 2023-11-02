@@ -1,21 +1,21 @@
 export default function CycleFormat(duration, cycle){
     if(duration === 1 || duration === "1"){
         switch (cycle) {
-            case "weekly":
+            case "week":
                 return "Semana";
                 break;
             
-            case "monthly":
+            case "month":
                 return "Mês";
                 break;
         }
     }else{
         switch (cycle) {
-            case "weekly":
+            case "week":
                 return "Semanas";
                 break;
             
-            case "monthly":
+            case "month":
                 return "Meses";
                 break;
         }

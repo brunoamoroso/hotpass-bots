@@ -31,10 +31,10 @@ composer.action("viewActiveSubscriptionsPlan", (ctx) => {
   ctx.scene.enter("viewActiveSubscriptionsPlan");
 });
 
-//Customer
-// composer.action("subscriptionsCustomer", async (ctx) => {
-//   await ctx.scene.enter("buySubscription");
-// });
+// Customer
+composer.action("subscriptionsCustomer", async (ctx) => {
+  await ctx.scene.enter("buySubscription");
+});
 
 // End of Subscriptions
 
