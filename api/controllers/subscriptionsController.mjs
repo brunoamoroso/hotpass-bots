@@ -2,7 +2,8 @@ import { Markup, Scenes } from "telegraf";
 import subscriptionSchema from "../schemas/Subscriptions.mjs";
 import cycleFormat from "../utils/cycleFormat.mjs";
 import { getModelByTenant } from "../utils/tenantUtils.mjs";
-import Stripe from "stripe";
+import { ApiError, PlansController } from "@pagarme/pagarme-nodejs-sdk";
+import client from "../utils/pgmeClient.mjs";
 
 export const sendMenu = (ctx) => {
   ctx.reply("O que você quer fazer nas assinaturas?", {
@@ -59,39 +60,74 @@ export const createSubscriptionPlan = new Scenes.WizardScene(
     try {
       ctx.scene.session.planData.duration = ctx.message.text;
       const planData = ctx.scene.session.planData;
-      const Subscription = getModelByTenant(ctx.session.db, "Subscription", subscriptionSchema);
-      //try to create the tier of the product first on stripe
-      const stripe = new Stripe(ctx.session.stripe);
+      const Subscription = getModelByTenant(
+        ctx.session.db,
+        "Subscription",
+        subscriptionSchema
+      );
 
-      const intervalPlan = (planData.cycle === "weekly") ? "week" : "month";
+      const intervalPlan = planData.cycle === "weekly" ? "week" : "month";
 
-      const subscriptionParams = {
-        currency: 'brl',
-        product: ctx.session.productId.replace("\"", ""),
-        unit_amount: planData.price.replace(".", "").replace(",", ""),
-        nickname: planData.title,
-        recurring: {
-          interval: intervalPlan,
-          interval_count: planData.duration,
-        }
+      if (!planData.price.includes(".") && !planData.price.includes(",")) {
+        //if the price doesn't have any . or , it multiples  by 100 to turn in cents so a 100 wouldn't 1,00
+        planData.price = planData.price * 100;
+      }else if((planData.price.includes(".") || planData.price.includes(","))){
+        planData.price = planData.price.replace(",", "").replace(".", "");
       }
-      
-      //create on stripe
-      await stripe.prices.create(subscriptionParams);
+
+      const pricePgme = Number.parseInt(planData.price);
+
+      const body = {
+        name: planData.title,
+        description: "",
+        shippable: false,
+        paymentMethods: ["credit_card"],
+        intervalCount: planData.duration,
+        interval: intervalPlan,
+        currency: "BRL",
+        statementDescriptor: "HSPLANO",
+        minimum_price: pricePgme,
+        billingType: "prepaid",
+        billingDays: [],
+        installments: [],
+        shippable: false,
+        items: [],
+        quantity: 1,
+        pricingScheme: {
+          schemeType: "unit",
+          price: pricePgme,
+          minimumPrice: pricePgme,
+        },
+        metadata: {
+          botId: ctx.botInfo.id.toString(),
+        },
+      };
+      //create a Plan on pagar.me
+      const newPlan = new PlansController(client);
+      const { result } = await newPlan.createPlan(body);
+
+      console.log(result);
 
       //register subscription on our database
-      const newSubscription = new Subscription({
-        title: planData.title,
-        price: planData.price,
-        duration: planData.duration,
-        cycle: planData.cycle,
-      });
-      await newSubscription.save();
+      //   const newSubscription = new Subscription({
+      //     title: planData.title,
+      //     price: planData.price,
+      //     duration: planData.duration,
+      //     cycle: planData.cycle,
+      //   });
+      //   await newSubscription.save();
       ctx.reply("Plano salvo!");
       return ctx.scene.leave();
+      // } catch (err) {
+      //   console.log(err);
+      //   return ctx.scene.leave();
+      // }
     } catch (err) {
-      console.log(err);
-      return ctx.scene.leave();
+      ctx.scene.leave();
+      if(err instanceof ApiError){
+        console.log(err);
+      }
+      throw new Error(err);
     }
   }
 );
@@ -99,36 +135,32 @@ export const createSubscriptionPlan = new Scenes.WizardScene(
 export const viewActiveSubscriptionsPlan = new Scenes.WizardScene(
   "viewActiveSubscriptionsPlan",
   async (ctx) => {
-    // const plans = await Subscription.find({ status: "enabled" }).lean();
-    const stripe = new Stripe(ctx.session.stripe);
-    const productId = "\""+ctx.session.productId+"\"";
-    const resultStripe = await stripe.prices.search({
-      query: `product:${productId} AND active:\"true\"`
-    });
-    
-    const plans = resultStripe.data;
-
+    const plansController = new PlansController(client);
+    const { result } = await plansController.getPlans();
+    const filteredPlans = result.data.filter((plan) => plan.metadata.botId === ctx.botInfo.id.toString());
+    const plans = filteredPlans;
 
     for (let i = 0; i < plans.length; i++) {
       const plan = plans[i];
-      plan.cycle = plan.cycle === "weekly" ? "Semanas" : "Meses";
 
-      const priceFormat = new Intl.NumberFormat('pt-br', {
-        style: 'currency',
-        currency: 'BRL'
+      const priceFormat = new Intl.NumberFormat("pt-br", {
+        style: "currency",
+        currency: "BRL",
       });
+
+      const planPrice = plan.items[0].pricingScheme.price;
 
       await ctx.reply(
         "*_Nome do Plano:_*\n" +
-          plan.nickname +
+          plan.name +
           "\n\n*_Preço do Plano:_*\n" +
-          priceFormat.format((plan.unit_amount/100)).replace(".", "\\.")+
+          priceFormat.format(planPrice / 100).replace(".", "\\.") +
           "\n\n*_Ciclo de cobrança do Plano:_*\n" +
-          plan.recurring.interval_count +
+          plan.intervalCount +
           " " +
-          cycleFormat(plan.recurring.interval_count, plan.recurring.interval)+
+          cycleFormat(plan.intervalCount, plan.interval) +
           "\n\n*_Assinantes Ativos:_*\n" +
-          plan.subscribers,
+          "Teste",
         {
           parse_mode: "MarkdownV2",
         }
@@ -141,33 +173,31 @@ export const viewActiveSubscriptionsPlan = new Scenes.WizardScene(
 export const buySubscription = new Scenes.BaseScene("buySubscription");
 
 buySubscription.enter(async (ctx) => {
-    // const plans = await Subscription.find({ status: "enabled" }).lean();
-    const stripe = new Stripe(ctx.session.stripe);
-    const productId = "\""+ctx.session.productId+"\"";
-    const resultStripe = await stripe.prices.search({
-      query: `product:${productId} AND active:\"true\"`
-    });
+  const plansController = new PlansController(client);
+  const { result } = await plansController.getPlans();
+  const filteredPlans = result.data.filter((plan) => plan.metadata.botId === ctx.botInfo.id.toString());
+  const plans = filteredPlans;
+  console.log(plans);
 
-    const plans = resultStripe.data;
-
-    const priceFormat = new Intl.NumberFormat('pt-br', {
-      style: 'currency',
-      currency: 'BRL'
-    });
+  const priceFormat = new Intl.NumberFormat("pt-br", {
+    style: "currency",
+    currency: "BRL",
+  });
 
   // const Subscription = getModelByTenant(ctx.session.db, "Subscription", subscriptionSchema);
   // const subscriptions = await Subscription.find({ status: "enabled" }).lean();
   let keyboardBtns = [];
   plans.forEach((plan) => {
+    const planPrice = plan.items[0].pricingScheme.price;
     const btnText =
-      plan.nickname +
+      plan.name +
       " - " +
-      plan.recurring.interval_count +
+      plan.intervalCount +
       " " +
-      cycleFormat(plan.recurring.interval_count, plan.recurring.interval) + 
-      " - " + 
-      priceFormat.format((plan.unit_amount/100)).replace(".", "\\.");
-    keyboardBtns.push([Markup.button.callback(btnText, `${plan.nickname}`)]);
+      cycleFormat(plan.intervalCount, plan.interval)+
+      " - " +
+      priceFormat.format(planPrice / 100).replace(".", "\\.");
+    keyboardBtns.push([Markup.button.callback(btnText, `${plan.name}`)]);
   });
 
   await ctx.reply(

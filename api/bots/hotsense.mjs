@@ -47,8 +47,6 @@ bot.use(session({ store }));
 bot.use(stage.middleware());
 bot.use(async (ctx, next) => {
   ctx.session.db = "hotsense";
-  ctx.session.stripe = process.env.HOTSENSE_STRIPE
-  ctx.session.productId = "prod_OvIXeLdH4iwsBx";
   return next();
 });
 bot.use(composer);
