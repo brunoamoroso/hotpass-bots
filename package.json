@@ -1,11 +1,12 @@
 {
-  "name": "HotSense Bots",
+  "name": "hotsense_bots",
   "version": "1.0.0",
   "description": "A basic bot to understand telegram bots",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "vercel dev --listen 80"
+    "start": "vercel dev --listen 80",
+    "dev": " nodemon ./src/index.mjs localhost 3000"
   },
   "keywords": [
     "bot",
@@ -18,9 +19,16 @@
     "@telegraf/session": "^2.0.0-beta.6",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "express-handlebars": "^7.1.2",
+    "express-session": "^1.17.3",
+    "express-validator": "^7.0.1",
     "mongodb": "^5.9.0",
     "mongoose": "^7.6.2",
+    "session-file-store": "^1.5.0",
     "telegraf": "^4.12.2",
     "vercel": "^32.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
   }
 }

@@ -35,7 +35,7 @@ const stage = new Scenes.Stage([
   admins.viewAdmins,
   subscriptions.createSubscriptionPlan,
   subscriptions.viewActiveSubscriptionsPlan,
-  // subscriptions.buySubscription,
+  subscriptions.buySubscription,
 ]);
 
 const store = Mongo({

@@ -2,8 +2,14 @@ import { Markup, Scenes } from "telegraf";
 import subscriptionSchema from "../schemas/Subscriptions.mjs";
 import cycleFormat from "../utils/cycleFormat.mjs";
 import { getModelByTenant } from "../utils/tenantUtils.mjs";
-import { ApiError, PlansController } from "@pagarme/pagarme-nodejs-sdk";
+import {
+  ApiError,
+  PlansController,
+} from "@pagarme/pagarme-nodejs-sdk";
 import client from "../utils/pgmeClient.mjs";
+import { configDotenv } from "dotenv";
+
+configDotenv();
 
 export const sendMenu = (ctx) => {
   ctx.reply("O que você quer fazer nas assinaturas?", {
@@ -71,7 +77,7 @@ export const createSubscriptionPlan = new Scenes.WizardScene(
       if (!planData.price.includes(".") && !planData.price.includes(",")) {
         //if the price doesn't have any . or , it multiples  by 100 to turn in cents so a 100 wouldn't 1,00
         planData.price = planData.price * 100;
-      }else if((planData.price.includes(".") || planData.price.includes(","))){
+      } else if (planData.price.includes(".") || planData.price.includes(",")) {
         planData.price = planData.price.replace(",", "").replace(".", "");
       }
 
@@ -106,8 +112,6 @@ export const createSubscriptionPlan = new Scenes.WizardScene(
       const newPlan = new PlansController(client);
       const { result } = await newPlan.createPlan(body);
 
-      console.log(result);
-
       //register subscription on our database
       //   const newSubscription = new Subscription({
       //     title: planData.title,
@@ -124,7 +128,7 @@ export const createSubscriptionPlan = new Scenes.WizardScene(
       // }
     } catch (err) {
       ctx.scene.leave();
-      if(err instanceof ApiError){
+      if (err instanceof ApiError) {
         console.log(err);
       }
       throw new Error(err);
@@ -137,7 +141,9 @@ export const viewActiveSubscriptionsPlan = new Scenes.WizardScene(
   async (ctx) => {
     const plansController = new PlansController(client);
     const { result } = await plansController.getPlans();
-    const filteredPlans = result.data.filter((plan) => plan.metadata.botId === ctx.botInfo.id.toString());
+    const filteredPlans = result.data.filter(
+      (plan) => plan.metadata.botId === ctx.botInfo.id.toString()
+    );
     const plans = filteredPlans;
 
     for (let i = 0; i < plans.length; i++) {
@@ -175,9 +181,10 @@ export const buySubscription = new Scenes.BaseScene("buySubscription");
 buySubscription.enter(async (ctx) => {
   const plansController = new PlansController(client);
   const { result } = await plansController.getPlans();
-  const filteredPlans = result.data.filter((plan) => plan.metadata.botId === ctx.botInfo.id.toString());
+  const filteredPlans = result.data.filter(
+    (plan) => plan.metadata.botId === ctx.botInfo.id.toString()
+  );
   const plans = filteredPlans;
-  console.log(plans);
 
   const priceFormat = new Intl.NumberFormat("pt-br", {
     style: "currency",
@@ -194,18 +201,17 @@ buySubscription.enter(async (ctx) => {
       " - " +
       plan.intervalCount +
       " " +
-      cycleFormat(plan.intervalCount, plan.interval)+
+      cycleFormat(plan.intervalCount, plan.interval) +
       " - " +
       priceFormat.format(planPrice / 100).replace(".", "\\.");
-    keyboardBtns.push([Markup.button.callback(btnText, `${plan.name}`)]);
+
+    keyboardBtns.push([Markup.button.url(btnText, process.env.CHECKOUT_DOMAIN + ctx.from.id + "/" + plan.id)]);
   });
 
   await ctx.reply(
-    "Tá quase tendo o privilégio de poucos amor. Escolhe por quanto tempo você quer acesso a mim 😏",
+    "Tá quase tendo o privilégio de poucos amor. Escolhe por quanto tempo você quer ter acesso a mim 😏",
     {
       ...Markup.inlineKeyboard(keyboardBtns),
     }
   );
-
-  return ctx.scene.leave();
 });
