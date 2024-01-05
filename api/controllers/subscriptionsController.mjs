@@ -182,7 +182,7 @@ buySubscription.enter(async (ctx) => {
   const plansController = new PlansController(client);
   const { result } = await plansController.getPlans();
   const filteredPlans = result.data.filter(
-    (plan) => plan.metadata.botId === ctx.botInfo.id.toString()
+    (plan) => plan.metadata?.botId === ctx.botInfo.id.toString()
   );
   const plans = filteredPlans;
 

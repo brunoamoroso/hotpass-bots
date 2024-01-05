@@ -8,6 +8,8 @@ import { validationResult } from "express-validator";
 
 export default class CheckoutController {
   static async identify(req, res) {
+
+    //remember to change planId to itemId and then verify if it's a pack or a plan that'll be bought
     const userId = req.params.id;
     const planId = req.params.planId;
 
@@ -79,20 +81,40 @@ export default class CheckoutController {
 
     req.session.customer = bodyCustomer;
 
-    function handleZipcodeBlur(event){
-      const zipCodeValue = event.target.value;
-
-      fetch(`https://h-apigateway.conectagov.estaleiro.serpro.gov.br/api-cep/v1/consulta/cep/${zipCodeValue}`).then(res => console.log(res));
-    }
-
-    const zipCodeInput = document.getElementById('zipcode');
-    zipCodeInput.addEventListener('blur', handleZipcodeBlur);
-
-
-    res.render("checkout/address", { plan, handleZipcodeBlur: handleZipcodeBlur.toStringg() });
+    res.render("checkout/address", { plan });
   }
 
+  
   static async addressPost(req, res){
-    
+    const { zipcode, city, uf, neighborhood, street, number, complement } = req.body;
+    let customer = req.session.customer;
+    customer.address = {
+      line1: street.concat(', ', neighborhood, ', ', number),
+      line2: complement,
+      street: street,
+      number: number,
+      neighborhood: neighborhood,
+      complement: complement,
+      zipCode: zipcode,
+      city: city,
+      state: uf,
+      country: 'BR',
+      metadata: {}
+    }
+
+    try{
+      const customerController = new CustomersController(client);
+      const { result, ...httpResponse } = await customerController.createCustomer(customer);
+
+      if(httpResponse.statusCode === 200 || httpResponse.statusCode === 201){
+        req.session.customer = customer;
+        res.render('checkout/payment', {plan: req.session.plan});
+      }
+    }catch (err) {
+      if (err instanceof ApiError) {
+        console.log(err);
+      }
+      throw new Error(err);
+    }
   }
 }
