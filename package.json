@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "vercel dev --listen 80",
-    "dev": " nodemon ./src/index.mjs localhost 3000"
+    "start": "vercel dev --listen 80"
   },
   "keywords": [
     "bot",
@@ -17,6 +16,7 @@
   "dependencies": {
     "@pagarme/pagarme-nodejs-sdk": "^6.8.1",
     "@telegraf/session": "^2.0.0-beta.6",
+    "base-64": "^1.0.0",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "express-handlebars": "^7.1.2",

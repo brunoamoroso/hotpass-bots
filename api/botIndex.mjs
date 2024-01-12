@@ -6,6 +6,7 @@ import * as links from "./controllers/linkAgreggatorController.mjs";
 import * as admins from "./controllers/adminsController.mjs";
 import * as auth from "./controllers/authController.mjs";
 import * as subscriptions from "./controllers/subscriptionsController.mjs";
+import * as groupChat from './controllers/groupChatController.mjs';
 
 import mainMenu from "./mainMenu.mjs";
 
@@ -99,6 +100,17 @@ composer.action("createAdmin", async (ctx) => {
 
 composer.action("viewAdmins", async (ctx) => {
   ctx.scene.enter("viewAdmins");
+});
+
+//Define a VIP Group
+composer.action("setVipGroup", async (ctx) => {
+  groupChat.setVipGroup(ctx);
+});
+
+composer.on('channel_post', async (ctx) => {
+  if(ctx.channelPost.text === "/setVipGroup"){
+    groupChat.setVipGroup(ctx);
+  }
 });
 
 export default composer;

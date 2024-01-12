@@ -2,7 +2,7 @@ import express from "express";
 import { configDotenv } from "dotenv";
 import { Telegraf, Scenes, session } from "telegraf";
 import { Mongo } from "@telegraf/session/mongodb";
-import composer from "../index.mjs";
+import composer from "../subscriptionBought/index.mjs";
 
 //Controllers
 import * as packs from "../controllers/packsController.mjs";

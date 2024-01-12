@@ -2,12 +2,10 @@ import { Markup, Scenes } from "telegraf";
 import subscriptionSchema from "../schemas/Subscriptions.mjs";
 import cycleFormat from "../utils/cycleFormat.mjs";
 import { getModelByTenant } from "../utils/tenantUtils.mjs";
-import {
-  ApiError,
-  PlansController,
-} from "@pagarme/pagarme-nodejs-sdk";
+import { ApiError, PlansController } from "@pagarme/pagarme-nodejs-sdk";
 import client from "../utils/pgmeClient.mjs";
 import { configDotenv } from "dotenv";
+import base64 from "base-64";
 
 configDotenv();
 
@@ -83,34 +81,96 @@ export const createSubscriptionPlan = new Scenes.WizardScene(
 
       const pricePgme = Number.parseInt(planData.price);
 
-      const body = {
+      // const body = {
+      //   name: planData.title,
+      //   description: "Assinatura de Plano",
+      //   shippable: false,
+      //   paymentMethods: ["credit_card"],
+      //   intervalCount: planData.duration,
+      //   interval: intervalPlan,
+      //   currency: "BRL",
+      //   statementDescriptor: "HSPLANO",
+      //   minimum_price: pricePgme,
+      //   billingType: "prepaid",
+      //   billingDays: [],
+      //   installments: [1],
+      //   shippable: false,
+      //   items: [{
+      //     id: (Math.random()).toString(),
+      //     name: planData.title,
+      //     quantity: 1,
+      //     description: "Assinatura de Plano",
+      //     pricingScheme: {
+      //       schemeType: "unit",
+      //       price: pricePgme,
+      //       minimumPrice: pricePgme,
+      //     }
+      //   }],
+      //   quantity: 1,
+      //   pricingScheme: {
+      //     schemeType: "unit",
+      //     price: pricePgme,
+      //     minimumPrice: pricePgme,
+      //   },
+      //   metadata: {
+      //     botId: ctx.botInfo.id.toString(),
+      //   },
+      // };
+
+      const bodyCreatePlan = {
         name: planData.title,
-        description: "",
+        description: "Assinatura de plano",
         shippable: false,
-        paymentMethods: ["credit_card"],
-        intervalCount: planData.duration,
-        interval: intervalPlan,
-        currency: "BRL",
-        statementDescriptor: "HSPLANO",
+        payment_methods: ["credit_card"],
+        installments: [1],
         minimum_price: pricePgme,
-        billingType: "prepaid",
-        billingDays: [],
-        installments: [],
-        shippable: false,
-        items: [],
-        quantity: 1,
-        pricingScheme: {
-          schemeType: "unit",
-          price: pricePgme,
-          minimumPrice: pricePgme,
-        },
+        statement_descriptor: "HSPLANO",
+        currency: "BRL",
+        interval: intervalPlan,
+        interval_count: planData.duration,
+        billing_type: "prepaid",
+        items: [
+          {
+            name: planData.title,
+            description: "Assinatura de Plano",
+            quantity: 1,
+            pricing_scheme: {
+              scheme_type: "unit",
+              price: pricePgme,
+              minimum_price: pricePgme,
+            },
+            cycles: 12,
+          },
+        ],
         metadata: {
           botId: ctx.botInfo.id.toString(),
         },
       };
+
+      const user = process.env.PGMSK;
+      const password = "";
+
+      const responseCreatePlan = await fetch(
+        "https://api.pagar.me/core/v5/plans",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Basic ${base64.encode(`${user}:${password}`)}`,
+          },
+          body: JSON.stringify(bodyCreatePlan),
+        }
+      ).then((resp) => {
+        if (!resp.ok) {
+          throw new Error(resp.statusText);
+        }
+        return resp.json();
+      });
+
+      console.log(responseCreatePlan);
       //create a Plan on pagar.me
-      const newPlan = new PlansController(client);
-      const { result } = await newPlan.createPlan(body);
+      // const newPlan = new PlansController(client);
+      // const { result } = await newPlan.createPlan(body);
 
       //register subscription on our database
       //   const newSubscription = new Subscription({
@@ -205,7 +265,12 @@ buySubscription.enter(async (ctx) => {
       " - " +
       priceFormat.format(planPrice / 100).replace(".", "\\.");
 
-    keyboardBtns.push([Markup.button.url(btnText, process.env.CHECKOUT_DOMAIN + ctx.from.id + "/" + plan.id)]);
+    keyboardBtns.push([
+      Markup.button.url(
+        btnText,
+        process.env.CHECKOUT_DOMAIN + ctx.session.botName + "/" + ctx.from.id + "/" + plan.id
+      ),
+    ]);
   });
 
   await ctx.reply(
@@ -215,3 +280,4 @@ buySubscription.enter(async (ctx) => {
     }
   );
 });
+
