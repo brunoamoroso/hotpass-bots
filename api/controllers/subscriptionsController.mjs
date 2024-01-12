@@ -6,6 +6,7 @@ import { ApiError, PlansController } from "@pagarme/pagarme-nodejs-sdk";
 import client from "../utils/pgmeClient.mjs";
 import { configDotenv } from "dotenv";
 import base64 from "base-64";
+import botConfigSchema from "../schemas/BotConfig.mjs";
 
 configDotenv();
 
@@ -280,4 +281,39 @@ buySubscription.enter(async (ctx) => {
     }
   );
 });
+
+export const subscriptionBought = async (bot, botName, customer_chat_id, type_item_bought) => {
+    try {
+      const BotConfig = getModelByTenant(botName+"db", "BotConfig", botConfigSchema);
+      const vipChat = await BotConfig.findOne().lean();
+
+      //update user with subscription bought for future marketing strategies
+      const User = getModelByTenant(botName+"db", "User", userSchema);
+
+      const chatInviteLink = await bot.telegram.createChatInviteLink(
+        vipChat.channel_id,
+        { chat_id: vipChat.channel_id, creates_join_request: true }
+      );
+      await bot.telegram.sendMessage(
+        customer_chat_id,
+        "✅ Pagamento confirmado"
+      );
+      await bot.telegram.sendMessage(
+        customer_chat_id,
+        "Bem vindo ao grupo vip",
+        {
+          chat_id: customer_chat_id,
+          ...Markup.inlineKeyboard([
+            Markup.button.url(
+              "Acesso ao grupo VIP",
+              chatInviteLink.invite_link
+            ),
+          ]),
+        }
+      );
+      return res.status(200).send("ok");
+    } catch (err) {
+      console.log(err);
+    }
+};
 
