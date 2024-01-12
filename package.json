@@ -1,5 +1,5 @@
 {
-  "name": "helloworld",
+  "name": "hotsense_bots",
   "version": "1.0.0",
   "description": "A basic bot to understand telegram bots",
   "main": "index.js",
@@ -14,13 +14,21 @@
   "author": "Bruno Amoroso",
   "license": "ISC",
   "dependencies": {
+    "@pagarme/pagarme-nodejs-sdk": "^6.8.1",
     "@telegraf/session": "^2.0.0-beta.6",
+    "base-64": "^1.0.0",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "express-handlebars": "^7.1.2",
+    "express-session": "^1.17.3",
+    "express-validator": "^7.0.1",
     "mongodb": "^5.9.0",
     "mongoose": "^7.6.2",
-    "stripe": "^13.8.0",
+    "session-file-store": "^1.5.0",
     "telegraf": "^4.12.2",
     "vercel": "^32.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
   }
 }

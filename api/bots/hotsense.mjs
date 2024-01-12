@@ -2,7 +2,7 @@ import express from "express";
 import { configDotenv } from "dotenv";
 import { Telegraf, Scenes, session } from "telegraf";
 import { Mongo } from "@telegraf/session/mongodb";
-import composer from "../index.mjs";
+import composer from "../subscriptionBought/index.mjs";
 
 //Controllers
 import * as packs from "../controllers/packsController.mjs";
@@ -35,7 +35,7 @@ const stage = new Scenes.Stage([
   admins.viewAdmins,
   subscriptions.createSubscriptionPlan,
   subscriptions.viewActiveSubscriptionsPlan,
-  // subscriptions.buySubscription,
+  subscriptions.buySubscription,
 ]);
 
 const store = Mongo({
@@ -45,7 +45,10 @@ const store = Mongo({
 
 bot.use(session({ store }));
 bot.use(stage.middleware());
-bot.use(async (ctx, next) => { ctx.session.db = "hotsense"; return next();});
+bot.use(async (ctx, next) => {
+  ctx.session.db = "hotsense";
+  return next();
+});
 bot.use(composer);
 
 bot.command("sair", async (ctx) => {

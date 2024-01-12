@@ -2,6 +2,14 @@ import { Markup, Scenes } from "telegraf";
 import subscriptionSchema from "../schemas/Subscriptions.mjs";
 import cycleFormat from "../utils/cycleFormat.mjs";
 import { getModelByTenant } from "../utils/tenantUtils.mjs";
+import { ApiError, PlansController } from "@pagarme/pagarme-nodejs-sdk";
+import client from "../utils/pgmeClient.mjs";
+import { configDotenv } from "dotenv";
+import base64 from "base-64";
+import botConfigSchema from "../schemas/BotConfig.mjs";
+import userSchema from "../schemas/User.mjs";
+
+configDotenv();
 
 export const sendMenu = (ctx) => {
   ctx.reply("O que você quer fazer nas assinaturas?", {
@@ -56,21 +64,136 @@ export const createSubscriptionPlan = new Scenes.WizardScene(
   },
   async (ctx) => {
     try {
-      const Subscription = getModelByTenant(ctx.session.db, "Subscription", subscriptionSchema);
       ctx.scene.session.planData.duration = ctx.message.text;
       const planData = ctx.scene.session.planData;
-      const newSubscription = new Subscription({
-        title: planData.title,
-        price: planData.price,
-        duration: planData.duration,
-        cycle: planData.cycle,
+      const Subscription = getModelByTenant(
+        ctx.session.db,
+        "Subscription",
+        subscriptionSchema
+      );
+
+      const intervalPlan = planData.cycle === "weekly" ? "week" : "month";
+
+      if (!planData.price.includes(".") && !planData.price.includes(",")) {
+        //if the price doesn't have any . or , it multiples  by 100 to turn in cents so a 100 wouldn't 1,00
+        planData.price = planData.price * 100;
+      } else if (planData.price.includes(".") || planData.price.includes(",")) {
+        planData.price = planData.price.replace(",", "").replace(".", "");
+      }
+
+      const pricePgme = Number.parseInt(planData.price);
+
+      // const body = {
+      //   name: planData.title,
+      //   description: "Assinatura de Plano",
+      //   shippable: false,
+      //   paymentMethods: ["credit_card"],
+      //   intervalCount: planData.duration,
+      //   interval: intervalPlan,
+      //   currency: "BRL",
+      //   statementDescriptor: "HSPLANO",
+      //   minimum_price: pricePgme,
+      //   billingType: "prepaid",
+      //   billingDays: [],
+      //   installments: [1],
+      //   shippable: false,
+      //   items: [{
+      //     id: (Math.random()).toString(),
+      //     name: planData.title,
+      //     quantity: 1,
+      //     description: "Assinatura de Plano",
+      //     pricingScheme: {
+      //       schemeType: "unit",
+      //       price: pricePgme,
+      //       minimumPrice: pricePgme,
+      //     }
+      //   }],
+      //   quantity: 1,
+      //   pricingScheme: {
+      //     schemeType: "unit",
+      //     price: pricePgme,
+      //     minimumPrice: pricePgme,
+      //   },
+      //   metadata: {
+      //     botId: ctx.botInfo.id.toString(),
+      //   },
+      // };
+
+      const bodyCreatePlan = {
+        name: planData.title,
+        description: "Assinatura de plano",
+        shippable: false,
+        payment_methods: ["credit_card"],
+        installments: [1],
+        minimum_price: pricePgme,
+        statement_descriptor: "HSPLANO",
+        currency: "BRL",
+        interval: intervalPlan,
+        interval_count: planData.duration,
+        billing_type: "prepaid",
+        items: [
+          {
+            name: planData.title,
+            description: "Assinatura de Plano",
+            quantity: 1,
+            pricing_scheme: {
+              scheme_type: "unit",
+              price: pricePgme,
+              minimum_price: pricePgme,
+            },
+            cycles: 12,
+          },
+        ],
+        metadata: {
+          botId: ctx.botInfo.id.toString(),
+        },
+      };
+
+      const user = process.env.PGMSK;
+      const password = "";
+
+      const responseCreatePlan = await fetch(
+        "https://api.pagar.me/core/v5/plans",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Basic ${base64.encode(`${user}:${password}`)}`,
+          },
+          body: JSON.stringify(bodyCreatePlan),
+        }
+      ).then((resp) => {
+        if (!resp.ok) {
+          throw new Error(resp.statusText);
+        }
+        return resp.json();
       });
-      await newSubscription.save();
+
+      console.log(responseCreatePlan);
+      //create a Plan on pagar.me
+      // const newPlan = new PlansController(client);
+      // const { result } = await newPlan.createPlan(body);
+
+      //register subscription on our database
+      //   const newSubscription = new Subscription({
+      //     title: planData.title,
+      //     price: planData.price,
+      //     duration: planData.duration,
+      //     cycle: planData.cycle,
+      //   });
+      //   await newSubscription.save();
       ctx.reply("Plano salvo!");
       return ctx.scene.leave();
+      // } catch (err) {
+      //   console.log(err);
+      //   return ctx.scene.leave();
+      // }
     } catch (err) {
-      console.log(err);
-      return ctx.scene.leave();
+      ctx.scene.leave();
+      if (err instanceof ApiError) {
+        console.log(err);
+      }
+      throw new Error(err);
     }
   }
 );
@@ -78,23 +201,34 @@ export const createSubscriptionPlan = new Scenes.WizardScene(
 export const viewActiveSubscriptionsPlan = new Scenes.WizardScene(
   "viewActiveSubscriptionsPlan",
   async (ctx) => {
-    const plans = await Subscription.find({ status: "enabled" }).lean();
-    console.log(plans);
+    const plansController = new PlansController(client);
+    const { result } = await plansController.getPlans();
+    const filteredPlans = result.data.filter(
+      (plan) => plan.metadata.botId === ctx.botInfo.id.toString()
+    );
+    const plans = filteredPlans;
 
     for (let i = 0; i < plans.length; i++) {
       const plan = plans[i];
-      plan.cycle = plan.cycle === "weekly" ? "Semanas" : "Meses";
+
+      const priceFormat = new Intl.NumberFormat("pt-br", {
+        style: "currency",
+        currency: "BRL",
+      });
+
+      const planPrice = plan.items[0].pricingScheme.price;
+
       await ctx.reply(
         "*_Nome do Plano:_*\n" +
-          plan.title +
+          plan.name +
           "\n\n*_Preço do Plano:_*\n" +
-          plan.price.replace(".", "\\.") +
+          priceFormat.format(planPrice / 100).replace(".", "\\.") +
           "\n\n*_Ciclo de cobrança do Plano:_*\n" +
-          plan.duration +
+          plan.intervalCount +
           " " +
-          cycleFormat(plan.duration, plan.cycle) +
+          cycleFormat(plan.intervalCount, plan.interval) +
           "\n\n*_Assinantes Ativos:_*\n" +
-          plan.subscribers,
+          "Teste",
         {
           parse_mode: "MarkdownV2",
         }
@@ -107,46 +241,80 @@ export const viewActiveSubscriptionsPlan = new Scenes.WizardScene(
 export const buySubscription = new Scenes.BaseScene("buySubscription");
 
 buySubscription.enter(async (ctx) => {
-  const Subscription = getModelByTenant(ctx.session.db, "Subscription", subscriptionSchema);
-  const subscriptions = await Subscription.find({ status: "enabled" }).lean();
+  const plansController = new PlansController(client);
+  const { result } = await plansController.getPlans();
+  const filteredPlans = result.data.filter(
+    (plan) => plan.metadata?.botId === ctx.botInfo.id.toString()
+  );
+  const plans = filteredPlans;
+
+  const priceFormat = new Intl.NumberFormat("pt-br", {
+    style: "currency",
+    currency: "BRL",
+  });
+
+  // const Subscription = getModelByTenant(ctx.session.db, "Subscription", subscriptionSchema);
+  // const subscriptions = await Subscription.find({ status: "enabled" }).lean();
   let keyboardBtns = [];
-  subscriptions.forEach((subscription) => {
+  plans.forEach((plan) => {
+    const planPrice = plan.items[0].pricingScheme.price;
     const btnText =
-      subscription.title +
+      plan.name +
       " - " +
-      subscription.duration +
+      plan.intervalCount +
       " " +
-      cycleFormat(subscription.duration, subscription.cycle) + 
-      " - " + 
-      "R$"+ subscription.price;
-    keyboardBtns.push([Markup.button.callback(btnText, `${subscription._id}`)]);
+      cycleFormat(plan.intervalCount, plan.interval) +
+      " - " +
+      priceFormat.format(planPrice / 100).replace(".", "\\.");
+
+    keyboardBtns.push([
+      Markup.button.url(
+        btnText,
+        process.env.CHECKOUT_DOMAIN + ctx.session.botName + "/" + ctx.from.id + "/" + plan.id
+      ),
+    ]);
   });
 
   await ctx.reply(
-    "Tá quase tendo o privilégio de poucos amor. Escolhe por quanto tempo você quer acesso a mim 😏",
+    "Tá quase tendo o privilégio de poucos amor. Escolhe por quanto tempo você quer ter acesso a mim 😏",
     {
       ...Markup.inlineKeyboard(keyboardBtns),
     }
   );
-
-  return ctx.scene.leave();
 });
 
-// buySubscription.on("callback_query", async (ctx) => {
-//   subscriptionsModel
-//     .getSubscriptionPlanById(ctx.callbackQuery.data)
-//     .then((plan) => {
-//       ctx.sendInvoice({
-//         chat_id: ctx.chat.id,
-//         title: plan.title,
-//         description: `Vai garantir ${plan.duration} ${cycleFormat(
-//           plan.duration,
-//           plan.cycle
-//         )} a mim amor`,
-//         payload: { userId: ctx.chat.id, planId: ctx.callbackQuery.data },
-//         provider_token: process.env.STRIPE_KEY,
-//         currency: "BRL",
-//         prices: [{ label: "Preço", amount: plan.price.replace(".", "") }],
-//       });
-//     });
-// });
+export const subscriptionBought = async (bot, botName, customer_chat_id, type_item_bought) => {
+    try {
+      const BotConfig = getModelByTenant(botName+"db", "BotConfig", botConfigSchema);
+      const vipChat = await BotConfig.findOne().lean();
+
+      //update user with subscription bought for future marketing strategies
+      const User = getModelByTenant(botName+"db", "User", userSchema);
+
+      const chatInviteLink = await bot.telegram.createChatInviteLink(
+        vipChat.channel_id,
+        { chat_id: vipChat.channel_id, creates_join_request: true }
+      );
+      await bot.telegram.sendMessage(
+        customer_chat_id,
+        "✅ Pagamento confirmado"
+      );
+      await bot.telegram.sendMessage(
+        customer_chat_id,
+        "Bem vindo ao grupo vip",
+        {
+          chat_id: customer_chat_id,
+          ...Markup.inlineKeyboard([
+            Markup.button.url(
+              "Acesso ao grupo VIP",
+              chatInviteLink.invite_link
+            ),
+          ]),
+        }
+      );
+      return res.status(200).send("ok");
+    } catch (err) {
+      console.log(err);
+    }
+};
+

@@ -1,8 +1,8 @@
 import express from "express";
 import { configDotenv } from "dotenv";
-import { Telegraf, Scenes, session } from "telegraf";
+import { Telegraf, Scenes, session, Markup } from "telegraf";
 import { Mongo } from "@telegraf/session/mongodb";
-import composer from "../index.mjs";
+import composer from "../botIndex.mjs";
 
 //Controllers
 import * as packs from "../controllers/packsController.mjs";
@@ -16,11 +16,27 @@ const app = express();
 
 const bot = new Telegraf(process.env.SWBOTTOKEN);
 
+app.post("/api/bots/swbot", async (req, res, next) => {
+  const {
+    customer_chat_id,
+    customer_pgme_id,
+    plan_pgme_id,
+    type_item_bought,
+    bot_name
+  } = req.body;
+
+  if ((type_item_bought !== undefined) && (type_item_bought === "subscription")) {
+    await subscriptions.subscriptionBought(bot, bot_name, customer_chat_id);
+  }
+
+  next();
+});
+
 // setting webhook to receive updates
 app.use(
   await bot.createWebhook({
     domain: process.env.WEBHOOK_DOMAIN,
-    path: "/api/bots/swbottest",
+    path: "/api/bots/swbot",
   })
 );
 
@@ -35,7 +51,7 @@ const stage = new Scenes.Stage([
   admins.viewAdmins,
   subscriptions.createSubscriptionPlan,
   subscriptions.viewActiveSubscriptionsPlan,
-  // subscriptions.buySubscription,
+  subscriptions.buySubscription,
 ]);
 
 const store = Mongo({
@@ -45,7 +61,11 @@ const store = Mongo({
 
 bot.use(session({ store }));
 bot.use(stage.middleware());
-bot.use(async (ctx, next) => { ctx.session.db = "swbotdb"; return next();});
+bot.use(async (ctx, next) => {
+  ctx.session.db = "swbotdb";
+  ctx.session.botName = "swbot";
+  return next();
+});
 bot.use(composer);
 
 bot.command("sair", async (ctx) => {
