@@ -7,6 +7,7 @@ import client from "../utils/pgmeClient.mjs";
 import { configDotenv } from "dotenv";
 import base64 from "base-64";
 import botConfigSchema from "../schemas/BotConfig.mjs";
+import userSchema from "../schemas/User.mjs";
 
 configDotenv();
 
