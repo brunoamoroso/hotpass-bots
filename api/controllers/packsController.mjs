@@ -19,9 +19,6 @@ export const sendMenu = (ctx) => {
 export const createPack = new Scenes.BaseScene("createPack");
 
 createPack.enter(async (ctx) => {
-  await ctx.reply(
-    "Comece me enviando a prévia do conteúdo. Pode ser uma foto ou um vídeo"
-  );
   ctx.scene.session.step = 0;
   ctx.scene.session.packData = {
     user: {
@@ -31,6 +28,9 @@ createPack.enter(async (ctx) => {
       username: ctx.chat.username,
     },
   };
+  await ctx.reply(
+    "Comece me enviando a prévia do conteúdo. Pode ser uma foto ou um vídeo"
+  );
 });
 
 createPack.on(
@@ -54,8 +54,8 @@ createPack.on(
   },
   async (ctx, next) => {
     if (ctx.scene.session.step === 1) {
-      await ctx.reply("Envie um título para o seu pack");
       ctx.scene.session.step = 2;
+      await ctx.reply("Envie um título para o seu pack");
     } else {
       next();
     }
@@ -64,8 +64,8 @@ createPack.on(
     //receives title
     if (ctx.scene.session.step === 2) {
       ctx.scene.session.packData.title = ctx.message.text;
-      await ctx.reply("Envie uma descrição para o pack");
       ctx.scene.session.step = 3;
+      await ctx.reply("Envie uma descrição para o pack");
     } else {
       next();
     }
@@ -74,8 +74,8 @@ createPack.on(
     //receives description
     if (ctx.scene.session.step === 3) {
       ctx.scene.session.packData.description = ctx.message.text;
-      await ctx.reply("Quanto vai custar o pack?");
       ctx.scene.session.step = 4;
+      await ctx.reply("Quanto vai custar o pack?");
     } else {
       next();
     }
@@ -83,6 +83,7 @@ createPack.on(
   async (ctx, next) => {
     if (ctx.scene.session.step === 4) {
       ctx.scene.session.packData.price = ctx.message.text;
+      ctx.scene.session.step = 5;
       await ctx.reply(
         "Agora me envie o conteúdo do pack. \nFotos e vídeos que serão enviados quando o cliente comprar o pack. \n\nQuando você tiver enviado todos os itens do pack e eles estiverem com os dois ✓✓. Então clique no botão abaixo ⤵️",
         {
@@ -94,7 +95,6 @@ createPack.on(
           ]),
         }
       );
-      ctx.scene.session.step = 5;
     } else {
       next();
     }
@@ -180,12 +180,13 @@ createPack.action("save", async (ctx) => {
   const Pack = getModelByTenant(ctx.session.db, "Pack", packSchema);
   try {
     const packData = ctx.scene.session.packData;
+    const formatPackPrice = parseInt(packData.price.replace(".", "").replace(",", ""));
     const newPack = new Pack({
       media_preview: packData.mediaPreview,
       media_preview_type: packData.mediaPreviewType,
       title: packData.title,
       description: packData.description,
-      price: packData.price,
+      price: formatPackPrice,
       content: packData.content,
       who_created: packData.user,
     });
