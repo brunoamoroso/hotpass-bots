@@ -269,6 +269,10 @@ buyPacks.enter(async (ctx) => {
     const pack = packs[i];
     if (pack.media_preview_type === "photo") {
       const checkoutURL = process.env.CHECKOUT_DOMAIN + ctx.session.botName + '/' + ctx.from.id + '/' + pack._id;
+      const formatPrice = new Intl.NumberFormat("pt-br", {
+        style: "currency",
+        currency: "BRL"
+      });
       await ctx.replyWithPhoto(pack.media_preview, {
         parse_mode: "Markdownv2",
         caption:
@@ -278,7 +282,7 @@ buyPacks.enter(async (ctx) => {
           "\n\n" +
           pack.description.replace(".", "\\."),
         ...Markup.inlineKeyboard([
-          Markup.button.url("Comprar - R$" + pack.price, checkoutURL),
+          Markup.button.url("Comprar - " + formatPrice.format(pack.price/100), checkoutURL),
         ]),
       });
     } else if (pack.media_preview_type === "video") {
@@ -288,38 +292,10 @@ buyPacks.enter(async (ctx) => {
   return;
 });
 
-// buyPacks.on("callback_query", async (ctx) => {
-//   const Pack = getModelByTenant(ctx.session.db, "Pack", packSchema);
-//   const pack = await Pack.findById(ctx.callbackQuery.data);
-//   ctx.sendInvoice({
-//     photo_url: await ctx.replyWithPhoto(pack.media_preview),
-//     chat_id: ctx.chat.id,
-//     title: "Pack",
-//     description: `Esse pack contém ${pack.content.length} itens para você`,
-//     payload: { userId: ctx.chat.id, packId: ctx.callbackQuery.data },
-//     provider_token: process.env.STRIPE_KEY,
-//     currency: "BRL",
-//     prices: [{ label: "Preço", amount: pack.price.replace(".", "") }],
-//   });
-// });
+export const packBought = async (bot, bot_name, customer_chat_id, pack_id) => {
+  const Pack = getModelByTenant(bot_name+'db', "Packs", packSchema);
+  const contentPack = await Pack.findById(pack_id).lean();
 
-// buyPacks.on("message", async (ctx) => {
-//   const Pack = getModelByTenant(ctx.session.db, "Pack", packSchema);
-//   const User = getModelByTenant(ctx.session.db, "User", userSchema);
-//   if (ctx.message.successful_payment) {
-//     await ctx.reply("Toma meu pack 😏");
-//     const payload = JSON.parse(ctx.message.successful_payment.invoice_payload);
-//     const packToSend = await Pack.findOne({_id: payload.packId}).lean();
-
-//     await ctx.sendMediaGroup(packToSend.content, {
-//       protect_content: true,
-//     });
-
-//     packToSend.date_bought = new Date();
-//     await User.findOneAndUpdate(
-//       { telegram_id: payload.userId },
-//       { $push: { packs_bought: packToSend } }
-//     );
-//   }
-//   return ctx.scene.leave();
-// });
+  await bot.telegram.sendMessage(customer_chat_id, '✅ Pagamento confirmado');
+  await bot.telegram.sendMediaGroup(customer_chat_id, contentPack.content);
+};
