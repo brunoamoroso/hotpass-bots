@@ -21,12 +21,17 @@ app.post("/api/bots/swbot", async (req, res, next) => {
     customer_chat_id,
     customer_pgme_id,
     plan_pgme_id,
+    pack_id,
     type_item_bought,
     bot_name
   } = req.body;
 
   if ((type_item_bought !== undefined) && (type_item_bought === "subscription")) {
     await subscriptions.subscriptionBought(bot, bot_name, customer_chat_id);
+  }
+
+  if((type_item_bought !== undefined) && (type_item_bought === 'pack')){
+    await packs.packBought(bot, bot_name, customer_chat_id, pack_id);
   }
 
   next();

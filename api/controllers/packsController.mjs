@@ -19,9 +19,6 @@ export const sendMenu = (ctx) => {
 export const createPack = new Scenes.BaseScene("createPack");
 
 createPack.enter(async (ctx) => {
-  await ctx.reply(
-    "Comece me enviando a prévia do conteúdo. Pode ser uma foto ou um vídeo"
-  );
   ctx.scene.session.step = 0;
   ctx.scene.session.packData = {
     user: {
@@ -31,6 +28,9 @@ createPack.enter(async (ctx) => {
       username: ctx.chat.username,
     },
   };
+  await ctx.reply(
+    "Comece me enviando a prévia do conteúdo. Pode ser uma foto ou um vídeo"
+  );
 });
 
 createPack.on(
@@ -54,8 +54,8 @@ createPack.on(
   },
   async (ctx, next) => {
     if (ctx.scene.session.step === 1) {
-      await ctx.reply("Envie um título para o seu pack");
       ctx.scene.session.step = 2;
+      await ctx.reply("Envie um título para o seu pack");
     } else {
       next();
     }
@@ -64,8 +64,8 @@ createPack.on(
     //receives title
     if (ctx.scene.session.step === 2) {
       ctx.scene.session.packData.title = ctx.message.text;
-      await ctx.reply("Envie uma descrição para o pack");
       ctx.scene.session.step = 3;
+      await ctx.reply("Envie uma descrição para o pack");
     } else {
       next();
     }
@@ -74,8 +74,8 @@ createPack.on(
     //receives description
     if (ctx.scene.session.step === 3) {
       ctx.scene.session.packData.description = ctx.message.text;
-      await ctx.reply("Quanto vai custar o pack?");
       ctx.scene.session.step = 4;
+      await ctx.reply("Quanto vai custar o pack?");
     } else {
       next();
     }
@@ -83,6 +83,7 @@ createPack.on(
   async (ctx, next) => {
     if (ctx.scene.session.step === 4) {
       ctx.scene.session.packData.price = ctx.message.text;
+      ctx.scene.session.step = 5;
       await ctx.reply(
         "Agora me envie o conteúdo do pack. \nFotos e vídeos que serão enviados quando o cliente comprar o pack. \n\nQuando você tiver enviado todos os itens do pack e eles estiverem com os dois ✓✓. Então clique no botão abaixo ⤵️",
         {
@@ -94,7 +95,6 @@ createPack.on(
           ]),
         }
       );
-      ctx.scene.session.step = 5;
     } else {
       next();
     }
@@ -180,12 +180,13 @@ createPack.action("save", async (ctx) => {
   const Pack = getModelByTenant(ctx.session.db, "Pack", packSchema);
   try {
     const packData = ctx.scene.session.packData;
+    const formatPackPrice = parseInt(packData.price.replace(".", "").replace(",", ""));
     const newPack = new Pack({
       media_preview: packData.mediaPreview,
       media_preview_type: packData.mediaPreviewType,
       title: packData.title,
       description: packData.description,
-      price: packData.price,
+      price: formatPackPrice,
       content: packData.content,
       who_created: packData.user,
     });
@@ -267,6 +268,11 @@ buyPacks.enter(async (ctx) => {
   for (let i = 0; i < packs.length; i++) {
     const pack = packs[i];
     if (pack.media_preview_type === "photo") {
+      const checkoutURL = process.env.CHECKOUT_DOMAIN + ctx.session.botName + '/' + ctx.from.id + '/' + pack._id;
+      const formatPrice = new Intl.NumberFormat("pt-br", {
+        style: "currency",
+        currency: "BRL"
+      });
       await ctx.replyWithPhoto(pack.media_preview, {
         parse_mode: "Markdownv2",
         caption:
@@ -276,7 +282,7 @@ buyPacks.enter(async (ctx) => {
           "\n\n" +
           pack.description.replace(".", "\\."),
         ...Markup.inlineKeyboard([
-          Markup.button.callback("Comprar - R$" + pack.price, `${pack._id}`),
+          Markup.button.url("Comprar - " + formatPrice.format(pack.price/100), checkoutURL),
         ]),
       });
     } else if (pack.media_preview_type === "video") {
@@ -286,38 +292,10 @@ buyPacks.enter(async (ctx) => {
   return;
 });
 
-buyPacks.on("callback_query", async (ctx) => {
-  const Pack = getModelByTenant(ctx.session.db, "Pack", packSchema);
-  const pack = await Pack.findById(ctx.callbackQuery.data);
-  ctx.sendInvoice({
-    photo_url: await ctx.replyWithPhoto(pack.media_preview),
-    chat_id: ctx.chat.id,
-    title: "Pack",
-    description: `Esse pack contém ${pack.content.length} itens para você`,
-    payload: { userId: ctx.chat.id, packId: ctx.callbackQuery.data },
-    provider_token: process.env.STRIPE_KEY,
-    currency: "BRL",
-    prices: [{ label: "Preço", amount: pack.price.replace(".", "") }],
-  });
-});
+export const packBought = async (bot, bot_name, customer_chat_id, pack_id) => {
+  const Pack = getModelByTenant(bot_name+'db', "Packs", packSchema);
+  const contentPack = await Pack.findById(pack_id).lean();
 
-buyPacks.on("message", async (ctx) => {
-  const Pack = getModelByTenant(ctx.session.db, "Pack", packSchema);
-  const User = getModelByTenant(ctx.session.db, "User", userSchema);
-  if (ctx.message.successful_payment) {
-    await ctx.reply("Toma meu pack 😏");
-    const payload = JSON.parse(ctx.message.successful_payment.invoice_payload);
-    const packToSend = await Pack.findOne({_id: payload.packId}).lean();
-
-    await ctx.sendMediaGroup(packToSend.content, {
-      protect_content: true,
-    });
-
-    packToSend.date_bought = new Date();
-    await User.findOneAndUpdate(
-      { telegram_id: payload.userId },
-      { $push: { packs_bought: packToSend } }
-    );
-  }
-  return ctx.scene.leave();
-});
+  await bot.telegram.sendMessage(customer_chat_id, '✅ Pagamento confirmado');
+  await bot.telegram.sendMediaGroup(customer_chat_id, contentPack.content);
+};
