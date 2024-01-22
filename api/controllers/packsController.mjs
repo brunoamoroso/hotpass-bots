@@ -315,9 +315,5 @@ export const packBought = async (bot, bot_name, customer_chat_id, pack_id) => {
   const contentPack = await Pack.findById(pack_id).lean();
 
   await bot.telegram.sendMessage(customer_chat_id, "✅ Pagamento confirmado");
-  await bot.telegram.sendMediaGroup({
-    chat_id: customer_chat_id, 
-    media: contentPack.content,
-    protect_content: true,
-  });
+  await bot.telegram.sendMediaGroup(customer_chat_id, contentPack.content, { protect_content: true } );
 };
