@@ -29,7 +29,7 @@ createPack.enter(async (ctx) => {
     },
   };
   await ctx.reply(
-    "Comece me enviando a prévia do conteúdo. Pode ser uma foto ou um vídeo"
+    "Comece me enviando uma prévia do seu conteúdo que servirá de capa para o pack. Pode ser uma foto ou um vídeo"
   );
 });
 
@@ -43,14 +43,10 @@ createPack.on(
         ctx.scene.session.packData.mediaPreviewType = "photo";
         ctx.scene.session.step = 1;
         next();
-      } else {
-        await ctx.reply(
-          "Desculpa, mas para o preview só aceitamos foto porque o telegram só aceita foto na hora de enviar a cobrança confirmado o produto que está sendo comprado"
-        );
       }
-    } else {
-      next();
     }
+
+    next();
   },
   async (ctx, next) => {
     if (ctx.scene.session.step === 1) {
@@ -229,8 +225,18 @@ viewPacks.enter(async (ctx) => {
             pack.price / 100
           )}`,
         ...Markup.inlineKeyboard([
-          [Markup.button.callback("👀 Ver conteúdos do Pack", `viewContent+${pack._id}`)],
-          [Markup.button.callback("❌ Desativar Pack", `disablePack+${pack._id}`)],
+          [
+            Markup.button.callback(
+              "👀 Ver conteúdos do Pack",
+              `viewContent+${pack._id}`
+            ),
+          ],
+          [
+            Markup.button.callback(
+              "❌ Desativar Pack",
+              `disablePack+${pack._id}`
+            ),
+          ],
         ]),
         protect_content: true,
       });
@@ -255,16 +261,14 @@ viewPacks.enter(async (ctx) => {
   }
 });
 
-viewPacks.on('callback_query', async (ctx) => {
+viewPacks.on("callback_query", async (ctx) => {
   const action = ctx.callbackQuery.data.split("+");
-  if(action[0] === "viewContent"){
-
+  if (action[0] === "viewContent") {
   }
 
-  if(action[1] === "disablePack"){
-
+  if (action[1] === "disablePack") {
   }
-})
+});
 
 export const buyPacks = new Scenes.BaseScene("buyPacks");
 
@@ -315,5 +319,7 @@ export const packBought = async (bot, bot_name, customer_chat_id, pack_id) => {
   const contentPack = await Pack.findById(pack_id).lean();
 
   await bot.telegram.sendMessage(customer_chat_id, "✅ Pagamento confirmado");
-  await bot.telegram.sendMediaGroup(customer_chat_id, contentPack.content, { protect_content: true } );
+  await bot.telegram.sendMediaGroup(customer_chat_id, contentPack.content, {
+    protect_content: true,
+  });
 };
