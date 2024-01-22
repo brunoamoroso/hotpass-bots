@@ -232,6 +232,7 @@ viewPacks.enter(async (ctx) => {
           [Markup.button.callback("👀 Ver conteúdos do Pack", `viewContent+${pack._id}`)],
           [Markup.button.callback("❌ Desativar Pack", `disablePack+${pack._id}`)],
         ]),
+        protect_content: true,
       });
     }
 
@@ -248,6 +249,7 @@ viewPacks.enter(async (ctx) => {
           [Markup.button.callback("👀 Ver conteúdos do Pack", "viewContent")],
           [Markup.button.callback("❌ Desativar Pack", "disablePack")],
         ]),
+        protect_content: true,
       });
     }
   }
@@ -255,7 +257,13 @@ viewPacks.enter(async (ctx) => {
 
 viewPacks.on('callback_query', async (ctx) => {
   const action = ctx.callbackQuery.data.split("+");
-  console.log(action);
+  if(action[0] === "viewContent"){
+
+  }
+
+  if(action[1] === "disablePack"){
+
+  }
 })
 
 export const buyPacks = new Scenes.BaseScene("buyPacks");
@@ -293,6 +301,7 @@ buyPacks.enter(async (ctx) => {
             checkoutURL
           ),
         ]),
+        protect_content: true,
       });
     } else if (pack.media_preview_type === "video") {
     }
@@ -306,5 +315,5 @@ export const packBought = async (bot, bot_name, customer_chat_id, pack_id) => {
   const contentPack = await Pack.findById(pack_id).lean();
 
   await bot.telegram.sendMessage(customer_chat_id, "✅ Pagamento confirmado");
-  await bot.telegram.sendMediaGroup(customer_chat_id, contentPack.content);
+  await bot.telegram.sendMediaGroup(customer_chat_id, contentPack.content, { protect_content: true } );
 };
