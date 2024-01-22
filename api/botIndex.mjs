@@ -58,10 +58,6 @@ composer.action("viewPacks", async (ctx) => {
 composer.action("packsCustomer", async (ctx) => {
   await ctx.scene.enter("buyPacks");
 });
-
-composer.on("pre_checkout_query", (ctx) => {
-  ctx.answerPreCheckoutQuery(true);
-});
 // End of Packs
 
 // Links Agreggator
