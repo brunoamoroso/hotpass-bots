@@ -73,9 +73,9 @@ bot.use(async (ctx, next) => {
 });
 bot.use(composer);
 
-bot.command("sair", async (ctx) => {
+bot.command("/sair", async (ctx) => {
   await ctx.scene.leave();
-  return ctx.reply("Saindo");
+  await ctx.reply("Saindo");
 });
 
 bot.catch((err) => {

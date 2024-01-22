@@ -12,7 +12,8 @@ import mainMenu from "./mainMenu.mjs";
 
 const composer = new Composer();
 
-composer.start((ctx) => {
+composer.start(async (ctx) => {
+  await ctx.scene.leave();
   auth.authUser(ctx.from, ctx.session.db).then((role) => {
     mainMenu(ctx, role);
   });
@@ -49,8 +50,8 @@ composer.action("createPack", (ctx) => {
   ctx.scene.enter("createPack");
 });
 
-composer.action("viewPacks", (ctx) => {
-  ctx.scene.enter("viewPacks");
+composer.action("viewPacks", async (ctx) => {
+  await ctx.scene.enter("viewPacks");
 });
 
 //Customer

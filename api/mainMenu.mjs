@@ -16,7 +16,6 @@ export default function mainMenu(ctx, userRole){
         [Markup.button.callback("🏷 Promoção", "linksCustomer")],
         [Markup.button.callback("💎 Definir Grupo dos VIPs", "setVipGroup")]
       ])
-        .oneTime()
     });
 
     // return ctx.replyWithPhoto(photo, {
