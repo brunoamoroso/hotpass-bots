@@ -44,14 +44,20 @@ createPack.on(
         ctx.scene.session.step = 1;
         next();
       }
-    }
 
+      await ctx.reply("", {
+        ...Markup.inlineKeyboard(
+          [Markup.button.callback("✅ Prévia do conteúdo correta", "rightPreview")],
+          [Markup.button.callback("❌ Prévia do conteúdo errada", "wrongPreview")]
+        )
+      })
+    }
     next();
   },
   async (ctx, next) => {
     if (ctx.scene.session.step === 1) {
       ctx.scene.session.step = 2;
-      await ctx.reply("Envie um título para o seu pack");
+      await ctx.reply("Envie um título para o seu pack. Não use emojis para o título dele.");
     } else {
       next();
     }
