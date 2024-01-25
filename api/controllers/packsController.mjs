@@ -204,34 +204,32 @@ createPack.action("contentPackDone", async (ctx) => {
   await ctx.reply("Certo, vamos para a revisão");
   ctx.scene.session.step = 6;
 
-  if (ctx.scene.session.packData.mediaPreviewType === "photo") {
-    await ctx.replyWithPhoto(ctx.scene.session.packData.mediaPreview, {
-      parse_mode: "MarkdownV2",
-      caption:
-        ctx.scene.session.packData.title.replace(".", "\\.") +
-        "\n" +
-        ctx.scene.session.packData.description.replace(".", "\\."),
-    });
-  }
+  const caption = ctx.scene.session.packData.title.replace(".", "\\.") + 
+                  '\n' + 
+                  ctx.scene.session.packData.description.replace(".", "\\.") +
+                  "\n\n\n" +
+                  "*_O preço que será cobrado:_*\nR$" + ctx.scene.session.packData.price.replace(".", "\\.")
 
-  if (ctx.scene.session.packData.mediaPreviewType === "video") {
-    await ctx.replyWithVideo(ctx.scene.session.packData.mediaPreview, {
-      parse_mode: "MarkdownV2",
-      caption: ctx.scene.session.packData.description,
-    });
+  switch (ctx.scene.session.packData.mediaPreviewType) {
+    case "photo":
+      await ctx.replyWithPhoto(ctx.scene.session.packData.mediaPreview, {
+        parse_mode: "MarkdownV2",
+        caption: caption,
+      });
+      break;
+    
+    case "video":
+      await ctx.replyWithVideo(ctx.scene.session.packData.mediaPreview, {
+        parse_mode: "MarkdownV2",
+        caption: caption,
+      });
+      break;
   }
-
-  await ctx.reply(
-    "*_O preço que será cobrado:_*\nR$" +
-      ctx.scene.session.packData.price.replace(".", "\\."),
-    {
-      parse_mode: "MarkdownV2",
-    }
-  );
 
   await ctx.reply("*_O conteúdo que será enviado na compra_*", {
     parse_mode: "MarkdownV2",
   });
+
   await ctx.replyWithMediaGroup(ctx.scene.session.packData.content);
 
   await ctx.reply("O que deseja fazer?", {
@@ -270,6 +268,7 @@ createPack.action("save", async (ctx) => {
       style: "currency",
       currency: "BRL",
     });
+    
     const checkoutURL = process.env.CHECKOUT_DOMAIN + ctx.session.botName + "/" + ctx.from.id + "/" + packResult._id;
 
     switch (packData.target) {
