@@ -23,8 +23,7 @@ const packSchema = new Schema(
       required: true,
     },
     target: {
-      type: String,
-      default: "all",
+      type: String
     },
     content: {
       type: Array,

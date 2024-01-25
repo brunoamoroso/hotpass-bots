@@ -88,7 +88,7 @@ createPack.on(
       const botConfigs = await botConfigsModel.findOne().lean();
 
       if(botConfigs.vip_chat_id){
-        keyboardBtns.push([Markup.button.callback("Grupo Vip", "target_vip")]);
+        keyboardBtns.push([Markup.button.callback("Grupo VIP", "target_vip")]);
       }
 
       if(botConfigs.preview_chat_id){
@@ -268,29 +268,22 @@ createPack.action("save", async (ctx) => {
       style: "currency",
       currency: "BRL",
     });
-    
+
     const checkoutURL = process.env.CHECKOUT_DOMAIN + ctx.session.botName + "/" + ctx.from.id + "/" + packResult._id;
 
     switch (packData.target) {
       case "all":
-        
-        break;
-      
-      case "vip":
-          if(packData.mediaPreviewType === "photo"){
+        switch (packData.mediaPreviewType) {
+          case "photo":
             await ctx.telegram.sendPhoto(botConfigs.vip_chat_id, packData.mediaPreview, {
               caption: packData.title + '\n\n' + packData.description,
               protect_content: true,
               ...Markup.inlineKeyboard([
                 [Markup.button.url(`Comprar Pack - ${formatPrice.format(intPackPrice/100)}`, checkoutURL)],
-                [Markup.button.url("Ver todos os meus packs", `https://t.me/${ctx.session.botUsername}?start=packsCustomer`)]
               ]
               )
             });
-          }
-
-          if(packData.mediaPreviewType === "video"){
-            await ctx.telegram.sendVideo(botConfigs.vip_chat_id, packData.mediaPreview, {
+            await ctx.telegram.sendPhoto(botConfigs.preview_chat_id, packData.mediaPreview, {
               caption: packData.title + '\n\n' + packData.description,
               protect_content: true,
               ...Markup.inlineKeyboard([
@@ -298,10 +291,79 @@ createPack.action("save", async (ctx) => {
               ]
               )
             });
+            break;
+
+          case "video":
+            await ctx.telegram.sendVideo(botConfigs.vip_chat_id, packData.mediaPreview, {
+              caption: packData.title + '\n\n' + packData.description,
+              protect_content: true,
+              ...Markup.inlineKeyboard([
+                [Markup.button.url(`Comprar Pack - ${formatPrice.format(intPackPrice/100)}`, checkoutURL)],
+                ]
+              )
+            });
+            await ctx.telegram.sendVideo(botConfigs.preview_chat_id, packData.mediaPreview, {
+              caption: packData.title + '\n\n' + packData.description,
+              protect_content: true,
+              ...Markup.inlineKeyboard([
+                [Markup.button.url(`Comprar Pack - ${formatPrice.format(intPackPrice/100)}`, checkoutURL)],
+                ]
+              )
+            });
+            break;
+        }
+        break;
+      
+      case "vip":
+          switch (packData.mediaPreviewType) {
+            case "photo":
+              await ctx.telegram.sendPhoto(botConfigs.vip_chat_id, packData.mediaPreview, {
+                caption: packData.title + '\n\n' + packData.description,
+                protect_content: true,
+                ...Markup.inlineKeyboard([
+                  [Markup.button.url(`Comprar Pack - ${formatPrice.format(intPackPrice/100)}`, checkoutURL)],
+                ]
+                )
+              });
+              break;
+
+            case "video":
+              await ctx.telegram.sendVideo(botConfigs.vip_chat_id, packData.mediaPreview, {
+                caption: packData.title + '\n\n' + packData.description,
+                protect_content: true,
+                ...Markup.inlineKeyboard([
+                  [Markup.button.url(`Comprar Pack - ${formatPrice.format(intPackPrice/100)}`, checkoutURL)],
+                  ]
+                )
+              });
+              break;
           }
         break;
       
       case "preview":
+          switch (packData.mediaPreviewType) {
+            case "photo":
+              await ctx.telegram.sendPhoto(botConfigs.vip_chat_id, packData.mediaPreview, {
+                caption: packData.title + '\n\n' + packData.description,
+                protect_content: true,
+                ...Markup.inlineKeyboard([
+                  [Markup.button.url(`Comprar Pack - ${formatPrice.format(intPackPrice/100)}`, checkoutURL)],
+                ]
+                )
+              });
+              break;
+
+            case "video":
+              await ctx.telegram.sendVideo(botConfigs.vip_chat_id, packData.mediaPreview, {
+                caption: packData.title + '\n\n' + packData.description,
+                protect_content: true,
+                ...Markup.inlineKeyboard([
+                  [Markup.button.url(`Comprar Pack - ${formatPrice.format(intPackPrice/100)}`, checkoutURL)],
+                  ]
+                )
+              });
+              break;
+          }
         break;
 
       default:
