@@ -22,6 +22,10 @@ const packSchema = new Schema(
       type: Number,
       required: true,
     },
+    target: {
+      type: String,
+      default: "all",
+    },
     content: {
       type: Array,
       required: true,

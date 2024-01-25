@@ -1,7 +1,7 @@
 import { Markup, Scenes } from "telegraf";
 import packSchema from "../schemas/Pack.mjs";
-import userSchema from "../schemas/User.mjs";
 import { getModelByTenant } from "../utils/tenantUtils.mjs";
+import botConfigSchema from "../schemas/BotConfig.mjs";
 
 //only for Admins
 export const sendMenu = (ctx) => {
@@ -19,6 +19,7 @@ export const sendMenu = (ctx) => {
 export const createPack = new Scenes.BaseScene("createPack");
 
 createPack.enter(async (ctx) => {
+  // ctx.scene.session.lastMessage = undefined;
   ctx.scene.session.step = 0;
   ctx.scene.session.packData = {
     user: {
@@ -29,7 +30,7 @@ createPack.enter(async (ctx) => {
     },
   };
   await ctx.reply(
-    "Comece me enviando a prévia do conteúdo. Pode ser uma foto ou um vídeo"
+    "Comece me enviando uma prévia do seu conteúdo que servirá de capa para o pack. Pode ser uma foto ou um vídeo"
   );
 });
 
@@ -42,22 +43,16 @@ createPack.on(
         ctx.scene.session.packData.mediaPreview = ctx.message.photo[0].file_id;
         ctx.scene.session.packData.mediaPreviewType = "photo";
         ctx.scene.session.step = 1;
-        next();
-      } else {
-        await ctx.reply(
-          "Desculpa, mas para o preview só aceitamos foto porque o telegram só aceita foto na hora de enviar a cobrança confirmado o produto que está sendo comprado"
-        );
       }
-    } else {
-      next();
     }
+    await next();
   },
   async (ctx, next) => {
     if (ctx.scene.session.step === 1) {
       ctx.scene.session.step = 2;
-      await ctx.reply("Envie um título para o seu pack");
-    } else {
-      next();
+      await ctx.reply("Envie um título para o seu pack. Não use emojis para o título dele.");
+    }else{
+      await next();
     }
   },
   async (ctx, next) => {
@@ -66,8 +61,8 @@ createPack.on(
       ctx.scene.session.packData.title = ctx.message.text;
       ctx.scene.session.step = 3;
       await ctx.reply("Envie uma descrição para o pack");
-    } else {
-      next();
+    }else{
+      await next();
     }
   },
   async (ctx, next) => {
@@ -77,62 +72,127 @@ createPack.on(
       ctx.scene.session.step = 4;
       await ctx.reply("Quanto vai custar o pack?");
     } else {
-      next();
+      await next();
     }
   },
   async (ctx, next) => {
     if (ctx.scene.session.step === 4) {
+      let keyboardBtns = [];
+      const botConfigsModel = getModelByTenant(ctx.session.db, "BotConfig", botConfigSchema);
+      const botConfigs = await botConfigsModel.findOne().lean();
+
+      if(botConfigs.vip_chat_id){
+        keyboardBtns.push([Markup.button.callback("Grupo Vip", "target_vip")]);
+      }
+
+      if(botConfigs.preview_chat_id){
+        keyboardBtns.push([Markup.button.callback("Grupo de Prévias", "target_preview")]);
+      }
+
+      if(keyboardBtns.length > 1){
+        keyboardBtns.push([Markup.button.callback("Todos", "target_all")]);
+      }
+
       ctx.scene.session.packData.price = ctx.message.text;
-      ctx.scene.session.step = 5;
-      await ctx.reply(
-        "Agora me envie o conteúdo do pack. \nFotos e vídeos que serão enviados quando o cliente comprar o pack. \n\nQuando você tiver enviado todos os itens do pack e eles estiverem com os dois ✓✓. Então clique no botão abaixo ⤵️",
-        {
-          ...Markup.inlineKeyboard([
-            Markup.button.callback(
-              "✅ Enviei todo o conteúdo",
-              "contentPackDone"
-            ),
-          ]),
-        }
-      );
-    } else {
-      next();
+      await ctx.reply("Selecione para qual grupo você irá divulgar e vender esse pack. O filtro escolhido indicará quem verá o pack em Packs no menu", {
+        ...Markup.inlineKeyboard(
+          keyboardBtns
+        )
+      })
+    }else{
+      await next();
     }
   },
   async (ctx, next) => {
-    if (ctx.scene.session.step === 5) {
-      if (!ctx.scene.session.packData.content) {
-        if (ctx.message.photo) {
-          ctx.scene.session.packData.content = [
-            { type: "photo", media: ctx.message.photo[0].file_id },
-          ];
-        }
+      if (ctx.scene.session.step === 5) {
+        // To come back later, it will exclude the last message that our bot send and send it again
+        // if(ctx.scene.session.lastMessage){
+        //   await ctx.deleteMessage(ctx.scene.session.lastMessage);
+        // }
 
-        if (ctx.message.video) {
-          ctx.scene.session.packData.content = [
-            { type: "video", media: ctx.message.video.file_id },
-          ];
-        }
-      } else {
-        if (ctx.message.photo) {
-          ctx.scene.session.packData.content.push({
-            type: "photo",
-            media: ctx.message.photo[0].file_id,
-          });
-        }
-
-        if (ctx.message.video) {
-          ctx.scene.session.packData.content.push({
-            type: "video",
-            media: ctx.message.video.file_id,
-          });
-        }
+          if (!ctx.scene.session.packData.content) {
+            if (ctx.message.photo) {
+              ctx.scene.session.packData.content = [
+                { type: "photo", media: ctx.message.photo[0].file_id },
+              ];
+            }
+    
+            if (ctx.message.video) {
+              ctx.scene.session.packData.content = [
+                { type: "video", media: ctx.message.video.file_id },
+              ];
+            }
+          } else {
+            if (ctx.message.photo) {
+              ctx.scene.session.packData.content.push({
+                type: "photo",
+                media: ctx.message.photo[0].file_id,
+              });
+            }
+    
+            if (ctx.message.video) {
+              ctx.scene.session.packData.content.push({
+                type: "video",
+                media: ctx.message.video.file_id,
+              });
+            }
+          }
+        
+  
+        await ctx.reply('Conteúdo salvo no pack.\n\nSe quiser pode continuar enviando mais conteúdos, mas apenas 1 por vez.\n\nSe já enviou todos os conteúdos clique em enviar.', {
+          ...Markup.inlineKeyboard(
+            [Markup.button.callback("✅ Enviar", "contentPackDone")]
+          )
+        });
+  
+        // ctx.scene.session.lastMessage = message.message_id;
+      }else{
+        await next();
       }
-    } else {
-      next();
-    }
+  },
+  async (ctx, next) => {
   }
 );
+
+createPack.action("target_vip", async (ctx, next) => {
+  ctx.scene.session.packData.target = "vip",
+  ctx.scene.session.step = 5;
+  await ctx.reply(
+    "Agora vamos começar a montar o pack. Me envie uma foto ou vídeo que fará parte do pack por vez.",
+  );
+});
+
+createPack.action("target_preview", async (ctx) => {
+  ctx.scene.session.packData.target = "preview",
+  ctx.scene.session.step = 5;
+  await ctx.reply(
+    "Agora me envie o conteúdo do pack. \nFotos e vídeos que serão enviados quando o cliente comprar o pack. \n\nQuando você tiver enviado todos os itens do pack e eles estiverem com os dois ✓✓. Então clique no botão abaixo ⤵️",
+    {
+      ...Markup.inlineKeyboard([
+        Markup.button.callback(
+          "✅ Enviei todo o conteúdo",
+          "contentPackDone"
+        ),
+      ]),
+    }
+  );
+});
+
+createPack.action("target_all", async (ctx) => {
+  ctx.scene.session.packData.target = "all",
+  ctx.scene.session.step = 5;
+  await ctx.reply(
+    "Agora me envie o conteúdo do pack. \nFotos e vídeos que serão enviados quando o cliente comprar o pack. \n\nQuando você tiver enviado todos os itens do pack e eles estiverem com os dois ✓✓. Então clique no botão abaixo ⤵️",
+    {
+      ...Markup.inlineKeyboard([
+        Markup.button.callback(
+          "✅ Enviei todo o conteúdo",
+          "contentPackDone"
+        ),
+      ]),
+    }
+  );
+});
 
 createPack.action("contentPackDone", async (ctx) => {
   await ctx.reply("Certo, vamos para a revisão");
@@ -176,11 +236,14 @@ createPack.action("contentPackDone", async (ctx) => {
   });
 });
 
+
 createPack.action("save", async (ctx) => {
   const Pack = getModelByTenant(ctx.session.db, "Pack", packSchema);
+  const BotConfigsModel = getModelByTenant(ctx.session.db, "BotConfig", botConfigSchema);
+
   try {
     const packData = ctx.scene.session.packData;
-    const formatPackPrice = parseInt(
+    const intPackPrice = parseInt(
       packData.price.replace(".", "").replace(",", "")
     );
     const newPack = new Pack({
@@ -188,14 +251,59 @@ createPack.action("save", async (ctx) => {
       media_preview_type: packData.mediaPreviewType,
       title: packData.title,
       description: packData.description,
-      price: formatPackPrice,
+      price: intPackPrice,
+      target: packData.target,
       content: packData.content,
       who_created: packData.user,
     });
 
-    newPack.save();
+    const packResult = await newPack.save();
 
-    await ctx.reply("O pack foi criado com sucesso!");
+    const botConfigs = await BotConfigsModel.findOne().lean();
+    const formatPrice = new Intl.NumberFormat("pt-br", {
+      style: "currency",
+      currency: "BRL",
+    });
+    const checkoutURL = process.env.CHECKOUT_DOMAIN + ctx.session.botName + "/" + ctx.from.id + "/" + packResult._id;
+
+    switch (packData.target) {
+      case "all":
+        
+        break;
+      
+      case "vip":
+          if(packData.mediaPreviewType === "photo"){
+            await ctx.telegram.sendPhoto(botConfigs.vip_chat_id, packData.mediaPreview, {
+              caption: packData.title + '\n\n' + packData.description,
+              protect_content: true,
+              ...Markup.inlineKeyboard([
+                [Markup.button.url(`Comprar Pack - ${formatPrice.format(intPackPrice/100)}`, checkoutURL)],
+                [Markup.button.url("Ver todos os meus packs", `https://t.me/${ctx.session.botUsername}?start=packsCustomer`)]
+              ]
+              )
+            });
+          }
+
+          if(packData.mediaPreviewType === "video"){
+            await ctx.telegram.sendVideo(botConfigs.vip_chat_id, packData.mediaPreview, {
+              caption: packData.title + '\n\n' + packData.description,
+              protect_content: true,
+              ...Markup.inlineKeyboard([
+                [Markup.button.url(`Comprar Pack - ${formatPrice.format(intPackPrice/100)}`, checkoutURL)],
+              ]
+              )
+            });
+          }
+        break;
+      
+      case "preview":
+        break;
+
+      default:
+        break;
+    }
+
+    await ctx.reply("O pack foi criado com sucesso! Já enviamos para o público definido.");
 
     return ctx.scene.leave();
   } catch (err) {
@@ -229,8 +337,18 @@ viewPacks.enter(async (ctx) => {
             pack.price / 100
           )}`,
         ...Markup.inlineKeyboard([
-          [Markup.button.callback("👀 Ver conteúdos do Pack", `viewContent+${pack._id}`)],
-          [Markup.button.callback("❌ Desativar Pack", `disablePack+${pack._id}`)],
+          [
+            Markup.button.callback(
+              "👀 Ver conteúdos do Pack",
+              `viewContent+${pack._id}`
+            ),
+          ],
+          [
+            Markup.button.callback(
+              "❌ Desativar Pack",
+              `disablePack+${pack._id}`
+            ),
+          ],
         ]),
         protect_content: true,
       });
@@ -255,16 +373,14 @@ viewPacks.enter(async (ctx) => {
   }
 });
 
-viewPacks.on('callback_query', async (ctx) => {
+viewPacks.on("callback_query", async (ctx) => {
   const action = ctx.callbackQuery.data.split("+");
-  if(action[0] === "viewContent"){
-
+  if (action[0] === "viewContent") {
   }
 
-  if(action[1] === "disablePack"){
-
+  if (action[1] === "disablePack") {
   }
-})
+});
 
 export const buyPacks = new Scenes.BaseScene("buyPacks");
 
@@ -315,5 +431,7 @@ export const packBought = async (bot, bot_name, customer_chat_id, pack_id) => {
   const contentPack = await Pack.findById(pack_id).lean();
 
   await bot.telegram.sendMessage(customer_chat_id, "✅ Pagamento confirmado");
-  await bot.telegram.sendMediaGroup(customer_chat_id, contentPack.content, { protect_content: true } );
+  await bot.telegram.sendMediaGroup(customer_chat_id, contentPack.content, {
+    protect_content: true,
+  });
 };
