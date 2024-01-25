@@ -44,6 +44,12 @@ createPack.on(
         ctx.scene.session.packData.mediaPreviewType = "photo";
         ctx.scene.session.step = 1;
       }
+
+      if(ctx.message.video){
+        ctx.scene.session.packData.mediaPreview = ctx.message.video.file_id;
+        ctx.scene.session.packData.mediaPreviewType = "video";
+        ctx.scene.session.step = 1;
+      }
     }
     await next();
   },
