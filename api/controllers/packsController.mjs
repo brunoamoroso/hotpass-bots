@@ -236,11 +236,14 @@ createPack.action("contentPackDone", async (ctx) => {
   });
 });
 
+
 createPack.action("save", async (ctx) => {
   const Pack = getModelByTenant(ctx.session.db, "Pack", packSchema);
+  const BotConfigsModel = getModelByTenant(ctx.session.db, "BotConfig", botConfigSchema);
+
   try {
     const packData = ctx.scene.session.packData;
-    const formatPackPrice = parseInt(
+    const intPackPrice = parseInt(
       packData.price.replace(".", "").replace(",", "")
     );
     const newPack = new Pack({
@@ -248,15 +251,51 @@ createPack.action("save", async (ctx) => {
       media_preview_type: packData.mediaPreviewType,
       title: packData.title,
       description: packData.description,
-      price: formatPackPrice,
+      price: intPackPrice,
       target: packData.target,
       content: packData.content,
       who_created: packData.user,
     });
 
-    newPack.save();
+    const packResult = await newPack.save();
 
-    await ctx.reply("O pack foi criado com sucesso!");
+    const botConfigs = await BotConfigsModel.findOne().lean();
+    const formatPrice = new Intl.NumberFormat("pt-br", {
+      style: "currency",
+      currency: "BRL",
+    });
+    const checkoutURL = process.env.CHECKOUT_DOMAIN + ctx.session.botName + "/" + ctx.from.id + "/" + packResult._id;
+
+    switch (packData.target) {
+      case "all":
+        
+        break;
+      
+      case "vip":
+          if(packData.mediaPreviewType === "photo"){
+            await ctx.telegram.sendPhoto(botConfigs.vip_chat_id, packData.mediaPreview, {
+              caption: packData.title + '\n\n' + packData.description,
+              protect_content: true,
+              ...Markup.inlineKeyboard(
+                [Markup.button.url(`Comprar Pack - ${formatPrice.format(intPackPrice)}`, checkoutURL)]
+                [Markup.button.url("Ver todos os meus packs", `https://t.me/${ctx.session.botUsername}?start=packsCustomer`)]
+              )
+            });
+          }
+
+          if(packData.mediaPreviewType === "video"){
+
+          }
+        break;
+      
+      case "preview":
+        break;
+
+      default:
+        break;
+    }
+
+    await ctx.reply("O pack foi criado com sucesso! Já enviamos para o público definido.");
 
     return ctx.scene.leave();
   } catch (err) {

@@ -13,7 +13,11 @@ import mainMenu from "./mainMenu.mjs";
 const composer = new Composer();
 
 composer.start(async (ctx) => {
-  await ctx.scene.leave();
+  if(ctx.payload === "packsCustomer"){
+    await ctx.scene.enter("buyPacks");
+    return;
+  }
+  
   await auth.authUser(ctx.from, ctx.session.db).then((role) => {
     mainMenu(ctx, role);
   });
