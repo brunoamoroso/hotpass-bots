@@ -44,6 +44,12 @@ createPack.on(
         ctx.scene.session.packData.mediaPreviewType = "photo";
         ctx.scene.session.step = 1;
       }
+
+      if(ctx.message.video){
+        ctx.scene.session.packData.mediaPreview = ctx.message.video.file_id;
+        ctx.scene.session.packData.mediaPreviewType = "video";
+        ctx.scene.session.step = 1;
+      }
     }
     await next();
   },
@@ -82,7 +88,7 @@ createPack.on(
       const botConfigs = await botConfigsModel.findOne().lean();
 
       if(botConfigs.vip_chat_id){
-        keyboardBtns.push([Markup.button.callback("Grupo Vip", "target_vip")]);
+        keyboardBtns.push([Markup.button.callback("Grupo VIP", "target_vip")]);
       }
 
       if(botConfigs.preview_chat_id){
@@ -198,34 +204,32 @@ createPack.action("contentPackDone", async (ctx) => {
   await ctx.reply("Certo, vamos para a revisão");
   ctx.scene.session.step = 6;
 
-  if (ctx.scene.session.packData.mediaPreviewType === "photo") {
-    await ctx.replyWithPhoto(ctx.scene.session.packData.mediaPreview, {
-      parse_mode: "MarkdownV2",
-      caption:
-        ctx.scene.session.packData.title.replace(".", "\\.") +
-        "\n" +
-        ctx.scene.session.packData.description.replace(".", "\\."),
-    });
-  }
+  const caption = ctx.scene.session.packData.title.replace(".", "\\.") + 
+                  '\n' + 
+                  ctx.scene.session.packData.description.replace(".", "\\.") +
+                  "\n\n\n" +
+                  "*_O preço que será cobrado:_*\nR$" + ctx.scene.session.packData.price.replace(".", "\\.")
 
-  if (ctx.scene.session.packData.mediaPreviewType === "video") {
-    await ctx.replyWithVideo(ctx.scene.session.packData.mediaPreview, {
-      parse_mode: "MarkdownV2",
-      caption: ctx.scene.session.packData.description,
-    });
+  switch (ctx.scene.session.packData.mediaPreviewType) {
+    case "photo":
+      await ctx.replyWithPhoto(ctx.scene.session.packData.mediaPreview, {
+        parse_mode: "MarkdownV2",
+        caption: caption,
+      });
+      break;
+    
+    case "video":
+      await ctx.replyWithVideo(ctx.scene.session.packData.mediaPreview, {
+        parse_mode: "MarkdownV2",
+        caption: caption,
+      });
+      break;
   }
-
-  await ctx.reply(
-    "*_O preço que será cobrado:_*\nR$" +
-      ctx.scene.session.packData.price.replace(".", "\\."),
-    {
-      parse_mode: "MarkdownV2",
-    }
-  );
 
   await ctx.reply("*_O conteúdo que será enviado na compra_*", {
     parse_mode: "MarkdownV2",
   });
+
   await ctx.replyWithMediaGroup(ctx.scene.session.packData.content);
 
   await ctx.reply("O que deseja fazer?", {
@@ -264,28 +268,22 @@ createPack.action("save", async (ctx) => {
       style: "currency",
       currency: "BRL",
     });
+
     const checkoutURL = process.env.CHECKOUT_DOMAIN + ctx.session.botName + "/" + ctx.from.id + "/" + packResult._id;
 
     switch (packData.target) {
       case "all":
-        
-        break;
-      
-      case "vip":
-          if(packData.mediaPreviewType === "photo"){
+        switch (packData.mediaPreviewType) {
+          case "photo":
             await ctx.telegram.sendPhoto(botConfigs.vip_chat_id, packData.mediaPreview, {
               caption: packData.title + '\n\n' + packData.description,
               protect_content: true,
               ...Markup.inlineKeyboard([
                 [Markup.button.url(`Comprar Pack - ${formatPrice.format(intPackPrice/100)}`, checkoutURL)],
-                [Markup.button.url("Ver todos os meus packs", `https://t.me/${ctx.session.botUsername}?start=packsCustomer`)]
               ]
               )
             });
-          }
-
-          if(packData.mediaPreviewType === "video"){
-            await ctx.telegram.sendVideo(botConfigs.vip_chat_id, packData.mediaPreview, {
+            await ctx.telegram.sendPhoto(botConfigs.preview_chat_id, packData.mediaPreview, {
               caption: packData.title + '\n\n' + packData.description,
               protect_content: true,
               ...Markup.inlineKeyboard([
@@ -293,10 +291,79 @@ createPack.action("save", async (ctx) => {
               ]
               )
             });
+            break;
+
+          case "video":
+            await ctx.telegram.sendVideo(botConfigs.vip_chat_id, packData.mediaPreview, {
+              caption: packData.title + '\n\n' + packData.description,
+              protect_content: true,
+              ...Markup.inlineKeyboard([
+                [Markup.button.url(`Comprar Pack - ${formatPrice.format(intPackPrice/100)}`, checkoutURL)],
+                ]
+              )
+            });
+            await ctx.telegram.sendVideo(botConfigs.preview_chat_id, packData.mediaPreview, {
+              caption: packData.title + '\n\n' + packData.description,
+              protect_content: true,
+              ...Markup.inlineKeyboard([
+                [Markup.button.url(`Comprar Pack - ${formatPrice.format(intPackPrice/100)}`, checkoutURL)],
+                ]
+              )
+            });
+            break;
+        }
+        break;
+      
+      case "vip":
+          switch (packData.mediaPreviewType) {
+            case "photo":
+              await ctx.telegram.sendPhoto(botConfigs.vip_chat_id, packData.mediaPreview, {
+                caption: packData.title + '\n\n' + packData.description,
+                protect_content: true,
+                ...Markup.inlineKeyboard([
+                  [Markup.button.url(`Comprar Pack - ${formatPrice.format(intPackPrice/100)}`, checkoutURL)],
+                ]
+                )
+              });
+              break;
+
+            case "video":
+              await ctx.telegram.sendVideo(botConfigs.vip_chat_id, packData.mediaPreview, {
+                caption: packData.title + '\n\n' + packData.description,
+                protect_content: true,
+                ...Markup.inlineKeyboard([
+                  [Markup.button.url(`Comprar Pack - ${formatPrice.format(intPackPrice/100)}`, checkoutURL)],
+                  ]
+                )
+              });
+              break;
           }
         break;
       
       case "preview":
+          switch (packData.mediaPreviewType) {
+            case "photo":
+              await ctx.telegram.sendPhoto(botConfigs.vip_chat_id, packData.mediaPreview, {
+                caption: packData.title + '\n\n' + packData.description,
+                protect_content: true,
+                ...Markup.inlineKeyboard([
+                  [Markup.button.url(`Comprar Pack - ${formatPrice.format(intPackPrice/100)}`, checkoutURL)],
+                ]
+                )
+              });
+              break;
+
+            case "video":
+              await ctx.telegram.sendVideo(botConfigs.vip_chat_id, packData.mediaPreview, {
+                caption: packData.title + '\n\n' + packData.description,
+                protect_content: true,
+                ...Markup.inlineKeyboard([
+                  [Markup.button.url(`Comprar Pack - ${formatPrice.format(intPackPrice/100)}`, checkoutURL)],
+                  ]
+                )
+              });
+              break;
+          }
         break;
 
       default:
