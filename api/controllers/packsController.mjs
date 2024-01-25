@@ -285,7 +285,14 @@ createPack.action("save", async (ctx) => {
           }
 
           if(packData.mediaPreviewType === "video"){
-
+            await ctx.telegram.sendVideo(botConfigs.vip_chat_id, packData.mediaPreview, {
+              caption: packData.title + '\n\n' + packData.description,
+              protect_content: true,
+              ...Markup.inlineKeyboard([
+                [Markup.button.url(`Comprar Pack - ${formatPrice.format(intPackPrice/100)}`, checkoutURL)],
+              ]
+              )
+            });
           }
         break;
       
