@@ -14,7 +14,7 @@ const composer = new Composer();
 
 composer.start(async (ctx) => {
   await ctx.scene.leave();
-  auth.authUser(ctx.from, ctx.session.db).then((role) => {
+  await auth.authUser(ctx.from, ctx.session.db).then((role) => {
     mainMenu(ctx, role);
   });
 });
@@ -46,8 +46,8 @@ composer.action("packs", (ctx) => {
   packs.sendMenu(ctx);
 });
 
-composer.action("createPack", (ctx) => {
-  ctx.scene.enter("createPack");
+composer.action("createPack", async (ctx) => {
+  await ctx.scene.enter("createPack");
 });
 
 composer.action("viewPacks", async (ctx) => {
