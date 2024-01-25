@@ -276,9 +276,10 @@ createPack.action("save", async (ctx) => {
             await ctx.telegram.sendPhoto(botConfigs.vip_chat_id, packData.mediaPreview, {
               caption: packData.title + '\n\n' + packData.description,
               protect_content: true,
-              ...Markup.inlineKeyboard(
-                [Markup.button.url(`Comprar Pack - ${formatPrice.format(intPackPrice)}`, checkoutURL)]
+              ...Markup.inlineKeyboard([
+                [Markup.button.url(`Comprar Pack - ${formatPrice.format(intPackPrice/100)}`, checkoutURL)],
                 [Markup.button.url("Ver todos os meus packs", `https://t.me/${ctx.session.botUsername}?start=packsCustomer`)]
+              ]
               )
             });
           }
