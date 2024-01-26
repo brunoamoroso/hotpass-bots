@@ -505,9 +505,9 @@ export const packBought = async (bot, bot_name, customer_chat_id, pack_id) => {
   
   
     await bot.telegram.sendMessage(customer_chat_id, "✅ Pagamento confirmado");
-    // await bot.telegram.sendMediaGroup(customer_chat_id, Pack.content, {
-    //   protect_content: true,
-    // });
+    await bot.telegram.sendMediaGroup(customer_chat_id, Pack.content, {
+      protect_content: true,
+    });
   }catch(err){
     console.log(err);
   }
