@@ -27,7 +27,7 @@ app.post("/api/bots/swbot", async (req, res, next) => {
   } = req.body;
 
   if ((type_item_bought !== undefined) && (type_item_bought === "subscription")) {
-    await subscriptions.subscriptionBought(bot, bot_name, customer_chat_id);
+    await subscriptions.subscriptionBought(bot, bot_name, customer_chat_id, plan_pgme_id);
   }
 
   if((type_item_bought !== undefined) && (type_item_bought === 'pack')){
