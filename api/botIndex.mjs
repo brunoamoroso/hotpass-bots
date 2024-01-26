@@ -103,14 +103,16 @@ composer.action("viewAdmins", async (ctx) => {
   ctx.scene.enter("viewAdmins");
 });
 
-//Define a VIP Group
-composer.action("setVipGroup", async (ctx) => {
-  groupChat.setVipGroup(ctx);
-});
-
+//Define Target Chats
 composer.on('channel_post', async (ctx) => {
-  if(ctx.channelPost.text === "/setVipGroup"){
-    groupChat.setVipGroup(ctx);
+  switch (ctx.channelPost.text) {
+    case "/setVipChat":
+      groupChat.setVipChat(ctx);
+      break;
+
+    case "/setPreviewChat":
+      groupChat.setPreviewChat(ctx);
+      break;
   }
 });
 

@@ -12,9 +12,6 @@ export default function mainMenu(ctx, userRole){
         [Markup.button.callback("📹 Meus Packs", "packs")],
         [Markup.button.callback("🔗 Agregador de Links", "links")],
         [Markup.button.callback("🦹‍♀️ Admins", "admins")],
-        [Markup.button.callback("📢 Divulgação", "linksCustomer")],
-        [Markup.button.callback("🏷 Promoção", "linksCustomer")],
-        [Markup.button.callback("💎 Definir Grupo dos VIPs", "setVipGroup")]
       ])
     });
 
