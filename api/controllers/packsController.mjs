@@ -2,6 +2,7 @@ import { Markup, Scenes } from "telegraf";
 import packSchema from "../schemas/Pack.mjs";
 import { getModelByTenant } from "../utils/tenantUtils.mjs";
 import botConfigSchema from "../schemas/BotConfig.mjs";
+import userSchema from '../schemas/User.mjs';
 
 //only for Admins
 export const sendMenu = (ctx) => {
@@ -494,11 +495,20 @@ buyPacks.enter(async (ctx) => {
 });
 
 export const packBought = async (bot, bot_name, customer_chat_id, pack_id) => {
-  const Pack = getModelByTenant(bot_name + "db", "Packs", packSchema);
-  const contentPack = await Pack.findById(pack_id).lean();
-
-  await bot.telegram.sendMessage(customer_chat_id, "✅ Pagamento confirmado");
-  await bot.telegram.sendMediaGroup(customer_chat_id, contentPack.content, {
-    protect_content: true,
-  });
+  try{
+    const PackModel = getModelByTenant(bot_name + "db", "Pack", packSchema);
+    const Pack = await PackModel.findById(pack_id).lean();
+    console.log(Pack);
+  
+    const UserModel = getModelByTenant(bot_name + "db", "User", userSchema);
+    await UserModel.findOneAndUpdate({telegram_id: customer_chat_id}, {$push: {packs_bought: Pack}});
+  
+  
+    await bot.telegram.sendMessage(customer_chat_id, "✅ Pagamento confirmado");
+    // await bot.telegram.sendMediaGroup(customer_chat_id, Pack.content, {
+    //   protect_content: true,
+    // });
+  }catch(err){
+    console.log(err);
+  }
 };
