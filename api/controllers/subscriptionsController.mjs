@@ -190,44 +190,76 @@ export const viewActiveSubscriptionsPlan = new Scenes.WizardScene(
 export const buySubscription = new Scenes.BaseScene("buySubscription");
 
 buySubscription.enter(async (ctx) => {
-  const plansController = new PlansController(client);
-  const { result } = await plansController.getPlans();
-  const filteredPlans = result.data.filter(
-    (plan) => plan.metadata?.botId === ctx.botInfo.id.toString()
-  );
-  const plans = filteredPlans;
+  try{
+    const UserModel = getModelByTenant(ctx.session.db, "User", userSchema);
+    const userHasSubscriptionActive = await UserModel.findOne({telegram_id: ctx.chat.id, subscriptions_bought: { $elemMatch: {status: "active"}}});
+    
+    if(userHasSubscriptionActive){
+      const BotConfig = getModelByTenant(ctx.session.db, "BotConfig", botConfigSchema);
+      const vipChat = await BotConfig.findOne().lean();
 
-  const priceFormat = new Intl.NumberFormat("pt-br", {
-    style: "currency",
-    currency: "BRL",
-  });
+      const chatInviteLink = await ctx.telegram.createChatInviteLink(
+        vipChat.vip_chat_id,
+        { chat_id: vipChat.vip_chat_id, creates_join_request: true }
+      );
+      await ctx.telegram.sendMessage(
+        ctx.chat.id,
+        "Sua assinatura ainda está ativa. Vem aproveitar tudo de mim aqui no grupo VIP",
+        {
+          chat_id: ctx.chat.id,
+          ...Markup.inlineKeyboard([
+            Markup.button.url(
+              "Acesso ao grupo VIP",
+              chatInviteLink.invite_link
+            ),
+          ]),
+        }
+      );
 
-  let keyboardBtns = [];
-  plans.forEach((plan) => {
-    const planPrice = plan.items[0].pricingScheme.price;
-    const btnText =
-      plan.name +
-      " - " +
-      plan.intervalCount +
-      " " +
-      cycleFormat(plan.intervalCount, plan.interval) +
-      " - " +
-      priceFormat.format(planPrice / 100).replace(".", "\\.");
-
-    keyboardBtns.push([
-      Markup.button.url(
-        btnText,
-        process.env.CHECKOUT_DOMAIN + ctx.session.botName + "/" + ctx.from.id + "/" + plan.id
-      ),
-    ]);
-  });
-
-  await ctx.reply(
-    "Tá quase tendo o privilégio de poucos amor. Escolhe por quanto tempo você quer ter acesso a mim 😏",
-    {
-      ...Markup.inlineKeyboard(keyboardBtns),
+      return;
     }
-  );
+
+    const plansController = new PlansController(client);
+    const { result } = await plansController.getPlans();
+    const filteredPlans = result.data.filter(
+      (plan) => plan.metadata?.botId === ctx.botInfo.id.toString()
+    );
+    const plans = filteredPlans;
+  
+    const priceFormat = new Intl.NumberFormat("pt-br", {
+      style: "currency",
+      currency: "BRL",
+    });
+  
+    let keyboardBtns = [];
+    plans.forEach((plan) => {
+      const planPrice = plan.items[0].pricingScheme.price;
+      const btnText =
+        plan.name +
+        " - " +
+        plan.intervalCount +
+        " " +
+        cycleFormat(plan.intervalCount, plan.interval) +
+        " - " +
+        priceFormat.format(planPrice / 100).replace(".", "\\.");
+  
+      keyboardBtns.push([
+        Markup.button.url(
+          btnText,
+          process.env.CHECKOUT_DOMAIN + ctx.session.botName + "/" + ctx.from.id + "/" + plan.id
+        ),
+      ]);
+    });
+  
+    await ctx.reply(
+      "Tá quase tendo o privilégio de poucos amor. Escolhe por quanto tempo você quer ter acesso a mim 😏",
+      {
+        ...Markup.inlineKeyboard(keyboardBtns),
+      }
+    );
+  }catch(err){
+    console.log(err);
+  }
 });
 
 export const subscriptionBought = async (bot, botName, customer_chat_id, plan_pgme_id) => {
@@ -245,6 +277,7 @@ export const subscriptionBought = async (bot, botName, customer_chat_id, plan_pg
         interval: result.interval,
         intervalCount: result.intervalCount,
         price: result.items[0].pricingScheme.price,
+        status: "active",
         date_bought: new Date(),
       }
 
@@ -255,8 +288,8 @@ export const subscriptionBought = async (bot, botName, customer_chat_id, plan_pg
         $push: {subscriptions_bought: subscriptionBought}});
 
       const chatInviteLink = await bot.telegram.createChatInviteLink(
-        vipChat.channel_id,
-        { chat_id: vipChat.channel_id, creates_join_request: true }
+        vipChat.vip_chat_id,
+        { chat_id: vipChat.vip_chat_id, creates_join_request: true }
       );
       await bot.telegram.sendMessage(
         customer_chat_id,
