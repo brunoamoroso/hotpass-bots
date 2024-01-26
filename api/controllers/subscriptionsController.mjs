@@ -8,6 +8,7 @@ import { configDotenv } from "dotenv";
 import base64 from "base-64";
 import botConfigSchema from "../schemas/BotConfig.mjs";
 import userSchema from "../schemas/User.mjs";
+import mongoose from "mongoose";
 
 configDotenv();
 
@@ -229,13 +230,29 @@ buySubscription.enter(async (ctx) => {
   );
 });
 
-export const subscriptionBought = async (bot, botName, customer_chat_id, type_item_bought) => {
+export const subscriptionBought = async (bot, botName, customer_chat_id, plan_pgme_id) => {
     try {
       const BotConfig = getModelByTenant(botName+"db", "BotConfig", botConfigSchema);
       const vipChat = await BotConfig.findOne().lean();
 
-      //update user with subscription bought for future marketing strategies
-      const User = getModelByTenant(botName+"db", "User", userSchema);
+      const plansController = new PlansController(client);
+      const { result } = await plansController.getPlan(plan_pgme_id);
+
+      const subscriptionBought = {
+        _id: new mongoose.Types.ObjectId().toString(),
+        plan_id: result.id,
+        name: result.name,
+        interval: result.interval,
+        intervalCount: result.intervalCount,
+        price: result.items[0].pricingScheme.price,
+        date_bought: new Date(),
+      }
+
+      // update user with subscription bought for future marketing strategies
+      const UserModel = getModelByTenant(botName+"db", "User", userSchema);
+      await UserModel.findOneAndUpdate({telegram_id: customer_chat_id}, {
+        $set: {interest_level: "high"},
+        $push: {subscriptions_bought: subscriptionBought}});
 
       const chatInviteLink = await bot.telegram.createChatInviteLink(
         vipChat.channel_id,
