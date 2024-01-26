@@ -3,6 +3,7 @@ import packSchema from "../schemas/Pack.mjs";
 import { getModelByTenant } from "../utils/tenantUtils.mjs";
 import botConfigSchema from "../schemas/BotConfig.mjs";
 import userSchema from '../schemas/User.mjs';
+import mongoose from "mongoose";
 
 //only for Admins
 export const sendMenu = (ctx) => {
@@ -498,7 +499,8 @@ export const packBought = async (bot, bot_name, customer_chat_id, pack_id) => {
   try{
     const PackModel = getModelByTenant(bot_name + "db", "Pack", packSchema);
     const Pack = await PackModel.findById(pack_id).lean();
-    console.log(Pack);
+    Pack.bought_id = new mongoose.Types.ObjectId();
+    Pack.date_bought = new Date();
   
     const UserModel = getModelByTenant(bot_name + "db", "User", userSchema);
     await UserModel.findOneAndUpdate({telegram_id: customer_chat_id}, {$push: {packs_bought: Pack}});
