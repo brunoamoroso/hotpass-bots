@@ -488,7 +488,25 @@ buyPacks.enter(async (ctx) => {
         ]),
         protect_content: true,
       });
-    } else if (pack.media_preview_type === "video") {
+    }
+    
+    if (pack.media_preview_type === "video") {
+      await ctx.replyWithVideo(pack.media_preview, {
+        parse_mode: "Markdownv2",
+        caption:
+          "*" +
+          pack.title.replace(".", "\\.") +
+          "*" +
+          "\n\n" +
+          pack.description.replace(".", "\\."),
+        ...Markup.inlineKeyboard([
+          Markup.button.url(
+            "Comprar - " + formatPrice.format(pack.price / 100),
+            checkoutURL
+          ),
+        ]),
+        protect_content: true,
+      });
     }
   }
 
