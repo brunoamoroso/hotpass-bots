@@ -83,42 +83,6 @@ export const createSubscriptionPlan = new Scenes.WizardScene(
 
       const pricePgme = Number.parseInt(planData.price);
 
-      // const body = {
-      //   name: planData.title,
-      //   description: "Assinatura de Plano",
-      //   shippable: false,
-      //   paymentMethods: ["credit_card"],
-      //   intervalCount: planData.duration,
-      //   interval: intervalPlan,
-      //   currency: "BRL",
-      //   statementDescriptor: "HSPLANO",
-      //   minimum_price: pricePgme,
-      //   billingType: "prepaid",
-      //   billingDays: [],
-      //   installments: [1],
-      //   shippable: false,
-      //   items: [{
-      //     id: (Math.random()).toString(),
-      //     name: planData.title,
-      //     quantity: 1,
-      //     description: "Assinatura de Plano",
-      //     pricingScheme: {
-      //       schemeType: "unit",
-      //       price: pricePgme,
-      //       minimumPrice: pricePgme,
-      //     }
-      //   }],
-      //   quantity: 1,
-      //   pricingScheme: {
-      //     schemeType: "unit",
-      //     price: pricePgme,
-      //     minimumPrice: pricePgme,
-      //   },
-      //   metadata: {
-      //     botId: ctx.botInfo.id.toString(),
-      //   },
-      // };
-
       const bodyCreatePlan = {
         name: planData.title,
         description: "Assinatura de plano",
@@ -169,25 +133,9 @@ export const createSubscriptionPlan = new Scenes.WizardScene(
         return resp.json();
       });
 
-      console.log(responseCreatePlan);
-      //create a Plan on pagar.me
-      // const newPlan = new PlansController(client);
-      // const { result } = await newPlan.createPlan(body);
-
-      //register subscription on our database
-      //   const newSubscription = new Subscription({
-      //     title: planData.title,
-      //     price: planData.price,
-      //     duration: planData.duration,
-      //     cycle: planData.cycle,
-      //   });
-      //   await newSubscription.save();
       ctx.reply("Plano salvo!");
       return ctx.scene.leave();
-      // } catch (err) {
-      //   console.log(err);
-      //   return ctx.scene.leave();
-      // }
+
     } catch (err) {
       ctx.scene.leave();
       if (err instanceof ApiError) {
@@ -253,8 +201,6 @@ buySubscription.enter(async (ctx) => {
     currency: "BRL",
   });
 
-  // const Subscription = getModelByTenant(ctx.session.db, "Subscription", subscriptionSchema);
-  // const subscriptions = await Subscription.find({ status: "enabled" }).lean();
   let keyboardBtns = [];
   plans.forEach((plan) => {
     const planPrice = plan.items[0].pricingScheme.price;
@@ -301,7 +247,7 @@ export const subscriptionBought = async (bot, botName, customer_chat_id, type_it
       );
       await bot.telegram.sendMessage(
         customer_chat_id,
-        "Bem vindo ao grupo vip",
+        "Bem vindo ao Grupo VIP",
         {
           chat_id: customer_chat_id,
           ...Markup.inlineKeyboard([
