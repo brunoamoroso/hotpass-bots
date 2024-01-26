@@ -8,6 +8,7 @@ import { configDotenv } from "dotenv";
 import base64 from "base-64";
 import botConfigSchema from "../schemas/BotConfig.mjs";
 import userSchema from "../schemas/User.mjs";
+import mongoose from "mongoose";
 
 configDotenv();
 
@@ -83,42 +84,6 @@ export const createSubscriptionPlan = new Scenes.WizardScene(
 
       const pricePgme = Number.parseInt(planData.price);
 
-      // const body = {
-      //   name: planData.title,
-      //   description: "Assinatura de Plano",
-      //   shippable: false,
-      //   paymentMethods: ["credit_card"],
-      //   intervalCount: planData.duration,
-      //   interval: intervalPlan,
-      //   currency: "BRL",
-      //   statementDescriptor: "HSPLANO",
-      //   minimum_price: pricePgme,
-      //   billingType: "prepaid",
-      //   billingDays: [],
-      //   installments: [1],
-      //   shippable: false,
-      //   items: [{
-      //     id: (Math.random()).toString(),
-      //     name: planData.title,
-      //     quantity: 1,
-      //     description: "Assinatura de Plano",
-      //     pricingScheme: {
-      //       schemeType: "unit",
-      //       price: pricePgme,
-      //       minimumPrice: pricePgme,
-      //     }
-      //   }],
-      //   quantity: 1,
-      //   pricingScheme: {
-      //     schemeType: "unit",
-      //     price: pricePgme,
-      //     minimumPrice: pricePgme,
-      //   },
-      //   metadata: {
-      //     botId: ctx.botInfo.id.toString(),
-      //   },
-      // };
-
       const bodyCreatePlan = {
         name: planData.title,
         description: "Assinatura de plano",
@@ -169,25 +134,9 @@ export const createSubscriptionPlan = new Scenes.WizardScene(
         return resp.json();
       });
 
-      console.log(responseCreatePlan);
-      //create a Plan on pagar.me
-      // const newPlan = new PlansController(client);
-      // const { result } = await newPlan.createPlan(body);
-
-      //register subscription on our database
-      //   const newSubscription = new Subscription({
-      //     title: planData.title,
-      //     price: planData.price,
-      //     duration: planData.duration,
-      //     cycle: planData.cycle,
-      //   });
-      //   await newSubscription.save();
       ctx.reply("Plano salvo!");
       return ctx.scene.leave();
-      // } catch (err) {
-      //   console.log(err);
-      //   return ctx.scene.leave();
-      // }
+
     } catch (err) {
       ctx.scene.leave();
       if (err instanceof ApiError) {
@@ -253,8 +202,6 @@ buySubscription.enter(async (ctx) => {
     currency: "BRL",
   });
 
-  // const Subscription = getModelByTenant(ctx.session.db, "Subscription", subscriptionSchema);
-  // const subscriptions = await Subscription.find({ status: "enabled" }).lean();
   let keyboardBtns = [];
   plans.forEach((plan) => {
     const planPrice = plan.items[0].pricingScheme.price;
@@ -283,13 +230,29 @@ buySubscription.enter(async (ctx) => {
   );
 });
 
-export const subscriptionBought = async (bot, botName, customer_chat_id, type_item_bought) => {
+export const subscriptionBought = async (bot, botName, customer_chat_id, plan_pgme_id) => {
     try {
       const BotConfig = getModelByTenant(botName+"db", "BotConfig", botConfigSchema);
       const vipChat = await BotConfig.findOne().lean();
 
-      //update user with subscription bought for future marketing strategies
-      const User = getModelByTenant(botName+"db", "User", userSchema);
+      const plansController = new PlansController(client);
+      const { result } = await plansController.getPlan(plan_pgme_id);
+
+      const subscriptionBought = {
+        _id: new mongoose.Types.ObjectId().toString(),
+        plan_id: result.id,
+        name: result.name,
+        interval: result.interval,
+        intervalCount: result.intervalCount,
+        price: result.items[0].pricingScheme.price,
+        date_bought: new Date(),
+      }
+
+      // update user with subscription bought for future marketing strategies
+      const UserModel = getModelByTenant(botName+"db", "User", userSchema);
+      await UserModel.findOneAndUpdate({telegram_id: customer_chat_id}, {
+        $set: {interest_level: "high"},
+        $push: {subscriptions_bought: subscriptionBought}});
 
       const chatInviteLink = await bot.telegram.createChatInviteLink(
         vipChat.channel_id,
@@ -301,7 +264,7 @@ export const subscriptionBought = async (bot, botName, customer_chat_id, type_it
       );
       await bot.telegram.sendMessage(
         customer_chat_id,
-        "Bem vindo ao grupo vip",
+        "Bem vindo ao Grupo VIP",
         {
           chat_id: customer_chat_id,
           ...Markup.inlineKeyboard([
