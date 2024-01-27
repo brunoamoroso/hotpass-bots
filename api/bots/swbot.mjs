@@ -19,7 +19,6 @@ const bot = new Telegraf(process.env.SWBOTTOKEN);
 app.post("/api/bots/swbot", async (req, res, next) => {
   const {
     customer_chat_id,
-    customer_pgme_id,
     plan_pgme_id,
     pack_id,
     type_item_bought,
