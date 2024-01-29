@@ -7,7 +7,7 @@ const connect = () => mongoose.createConnection(process.env.MONGODB_URI);
 const connectionFactory = () => {
   const db = connect(process.env.MONGODB_URI);
   db.on("open", () => {
-    console.log("Mongoose connection open on local!");
+    console.log("Mongoose connection!");
   });
   db.on("error", (err) => {
     throw new Error(err);
