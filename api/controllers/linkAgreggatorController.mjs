@@ -130,12 +130,20 @@ export const createLink = new Scenes.WizardScene(
 export const sendCustomerLinks = async (ctx) => {
   const Link = getModelByTenant(ctx.session.db, "Link", linkSchema);
   const links = await Link.find().lean();
+
+  if(links.length === 0){
+    await ctx.reply('Ainda não temos nenhum link cadastrado para outras plataformas.');
+    await ctx.scene.leave();
+    return;
+  }
+
   let keyboardBtns = [];
   links.forEach((link) => {
     keyboardBtns.push([Markup.button.url(link.name, link.url)]);
   });
-  await ctx.reply("Teste dos Links do Consumidor", {
+  await ctx.reply("", {
     ...Markup.inlineKeyboard(keyboardBtns),
   });
-  ctx.scene.leave();
+
+  await ctx.scene.leave();
 };
