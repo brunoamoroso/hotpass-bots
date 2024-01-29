@@ -95,6 +95,12 @@ createPack.on(
       );
       const botConfigs = await botConfigsModel.findOne().lean();
 
+      if(botConfigs.length === 0){
+        await ctx.reply('Você precisa configurar primeiro o grupo de Prévias e/ou de VIPs para que o bot consiga anunciar o pack quando você terminar de criar ele');
+        await ctx.scene.leave();
+        return;
+      }
+
       if (botConfigs.vip_chat_id) {
         keyboardBtns.push([Markup.button.callback("Grupo VIP", "target_vip")]);
       }
