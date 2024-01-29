@@ -188,24 +188,14 @@ createPack.action("target_vip", async (ctx, next) => {
 createPack.action("target_preview", async (ctx) => {
   (ctx.scene.session.packData.target = "preview"), (ctx.scene.session.step = 5);
   await ctx.reply(
-    "Agora me envie o conteúdo do pack. \nFotos e vídeos que serão enviados quando o cliente comprar o pack. \n\nQuando você tiver enviado todos os itens do pack e eles estiverem com os dois ✓✓. Então clique no botão abaixo ⤵️",
-    {
-      ...Markup.inlineKeyboard([
-        Markup.button.callback("✅ Enviei todo o conteúdo", "contentPackDone"),
-      ]),
-    }
+    "Agora vamos começar a montar o pack. Me envie uma foto ou vídeo que fará parte do pack por vez."
   );
 });
 
 createPack.action("target_all", async (ctx) => {
   (ctx.scene.session.packData.target = "all"), (ctx.scene.session.step = 5);
   await ctx.reply(
-    "Agora me envie o conteúdo do pack. \nFotos e vídeos que serão enviados quando o cliente comprar o pack. \n\nQuando você tiver enviado todos os itens do pack e eles estiverem com os dois ✓✓. Então clique no botão abaixo ⤵️",
-    {
-      ...Markup.inlineKeyboard([
-        Markup.button.callback("✅ Enviei todo o conteúdo", "contentPackDone"),
-      ]),
-    }
+    "Agora vamos começar a montar o pack. Me envie uma foto ou vídeo que fará parte do pack por vez."
   );
 });
 
