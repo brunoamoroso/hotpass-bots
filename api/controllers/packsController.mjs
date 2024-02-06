@@ -283,13 +283,16 @@ createPack.action("save", async (ctx) => {
       currency: "BRL",
     });
 
-    const checkoutURL =
-      process.env.CHECKOUT_DOMAIN +
-      ctx.session.botName +
-      "/" +
-      ctx.from.id +
-      "/" +
-      packResult._id;
+    // const checkoutURL =
+    //   process.env.CHECKOUT_DOMAIN +
+    //   ctx.session.botName +
+    //   "/" +
+    //   ctx.from.id +
+    //   "/" +
+    //   packResult._id;
+
+    // Temporary while we don't broadcast to users
+    const checkoutURL = `https://t.me/${ctx.session.tgBotLink}?start=buyPack+${packResult._id}`;
 
     switch (packData.target) {
       case "all":

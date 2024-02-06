@@ -68,6 +68,7 @@ bot.use(stage.middleware());
 bot.use(async (ctx, next) => {
   ctx.session.db = "amandaleondb";
   ctx.session.botName = "amandaleon";
+  ctx.session.tgBotLink = 'Amanda_LeonBot';
   return next();
 });
 
