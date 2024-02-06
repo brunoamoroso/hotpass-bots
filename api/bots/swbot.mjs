@@ -68,6 +68,7 @@ bot.use(stage.middleware());
 bot.use(async (ctx, next) => {
   ctx.session.db = "swbotdb";
   ctx.session.botName = "swbot";
+  ctx.session.tgBotLink = 'VercelTestebot';
   return next();
 });
 bot.use(composer);

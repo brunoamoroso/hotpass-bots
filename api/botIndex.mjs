@@ -13,7 +13,8 @@ import mainMenu from "./mainMenu.mjs";
 const composer = new Composer();
 
 composer.start(async (ctx) => {
-  if(ctx.payload === "packsCustomer"){
+  const payload = ctx.payload.split("_");
+  if(payload[0] === "buyPacks"){
     await ctx.scene.enter("buyPacks");
     return;
   }

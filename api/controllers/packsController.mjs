@@ -3,7 +3,6 @@ import packSchema from "../schemas/Pack.mjs";
 import { getModelByTenant } from "../utils/tenantUtils.mjs";
 import botConfigSchema from "../schemas/BotConfig.mjs";
 import userSchema from "../schemas/User.mjs";
-import mongoose from "mongoose";
 
 //only for Admins
 export const sendMenu = (ctx) => {
@@ -292,7 +291,7 @@ createPack.action("save", async (ctx) => {
     //   packResult._id;
 
     // Temporary while we don't broadcast to users
-    const checkoutURL = `https://t.me/${ctx.session.tgBotLink}?start=buyPack+${packResult._id}`;
+    const checkoutURL = `https://t.me/${ctx.session.tgBotLink}?start=buyPacks_${packResult._id}`;
 
     switch (packData.target) {
       case "all":
@@ -307,7 +306,7 @@ createPack.action("save", async (ctx) => {
                 ...Markup.inlineKeyboard([
                   [
                     Markup.button.url(
-                      `Comprar Pack - ${formatPrice.format(
+                      `Ir no Bot Comprar - ${formatPrice.format(
                         intPackPrice / 100
                       )}`,
                       checkoutURL
@@ -325,7 +324,7 @@ createPack.action("save", async (ctx) => {
                 ...Markup.inlineKeyboard([
                   [
                     Markup.button.url(
-                      `Comprar Pack - ${formatPrice.format(
+                      `Ir no Bot Comprar - ${formatPrice.format(
                         intPackPrice / 100
                       )}`,
                       checkoutURL
@@ -346,7 +345,7 @@ createPack.action("save", async (ctx) => {
                 ...Markup.inlineKeyboard([
                   [
                     Markup.button.url(
-                      `Comprar Pack - ${formatPrice.format(
+                      `Ir no Bot Comprar - ${formatPrice.format(
                         intPackPrice / 100
                       )}`,
                       checkoutURL
@@ -364,7 +363,7 @@ createPack.action("save", async (ctx) => {
                 ...Markup.inlineKeyboard([
                   [
                     Markup.button.url(
-                      `Comprar Pack - ${formatPrice.format(
+                      `Ir no Bot Comprar - ${formatPrice.format(
                         intPackPrice / 100
                       )}`,
                       checkoutURL
@@ -389,7 +388,7 @@ createPack.action("save", async (ctx) => {
                 ...Markup.inlineKeyboard([
                   [
                     Markup.button.url(
-                      `Comprar Pack - ${formatPrice.format(
+                      `Ir no Bot Comprar - ${formatPrice.format(
                         intPackPrice / 100
                       )}`,
                       checkoutURL
@@ -410,7 +409,7 @@ createPack.action("save", async (ctx) => {
                 ...Markup.inlineKeyboard([
                   [
                     Markup.button.url(
-                      `Comprar Pack - ${formatPrice.format(
+                      `Ir no Bot Comprar - ${formatPrice.format(
                         intPackPrice / 100
                       )}`,
                       checkoutURL
@@ -435,7 +434,7 @@ createPack.action("save", async (ctx) => {
                 ...Markup.inlineKeyboard([
                   [
                     Markup.button.url(
-                      `Comprar Pack - ${formatPrice.format(
+                      `Ir no bot Comprar - ${formatPrice.format(
                         intPackPrice / 100
                       )}`,
                       checkoutURL
@@ -456,7 +455,7 @@ createPack.action("save", async (ctx) => {
                 ...Markup.inlineKeyboard([
                   [
                     Markup.button.url(
-                      `Comprar Pack - ${formatPrice.format(
+                      `Ir no Bot Comprar - ${formatPrice.format(
                         intPackPrice / 100
                       )}`,
                       checkoutURL
@@ -565,9 +564,73 @@ export const buyPacks = new Scenes.BaseScene("buyPacks");
 buyPacks.enter(async (ctx) => {
   try {
     ctx.session.user = ctx.chat;
-    const Pack = getModelByTenant(ctx.session.db, "Pack", packSchema);
-    const User = getModelByTenant(ctx.session.db, "User", userSchema);
-    const packs = await Pack.find({ status: "enabled", _id: {$nin: await User.distinct('packs_bought', { telegram_id: ctx.chat.id })} }).lean();
+    const PackModel = getModelByTenant(ctx.session.db, "Pack", packSchema);
+    const UserModel = getModelByTenant(ctx.session.db, "User", userSchema);
+
+    if(ctx.payload){
+      const payload = ctx.payload.split("_");
+      const pack = await PackModel.findOne({status: "enabled", _id: payload[1]}).lean();
+      const packBought = await UserModel.findOne({"packs_bought._id": pack._id}).lean();
+
+      if(packBought){
+        await ctx.reply('Você já comprou esse pack 😉');
+        await ctx.scene.leave();
+        return;
+      }
+
+      if (pack.media_preview_type === "photo") {
+        const checkoutURL =
+          process.env.CHECKOUT_DOMAIN +
+          ctx.session.botName +
+          "/" +
+          ctx.from.id +
+          "/" +
+          pack._id;
+        const formatPrice = new Intl.NumberFormat("pt-br", {
+          style: "currency",
+          currency: "BRL",
+        });
+
+        await ctx.replyWithPhoto(pack.media_preview, {
+          parse_mode: "Markdownv2",
+          caption:
+            "*" +
+            pack.title.replace(".", "\\.") +
+            "*" +
+            "\n\n" +
+            pack.description.replace(".", "\\."),
+          ...Markup.inlineKeyboard([
+            Markup.button.url(
+              "Comprar - " + formatPrice.format(pack.price / 100),
+              checkoutURL
+            ),
+          ]),
+          protect_content: true,
+        });
+      }
+
+      if (pack.media_preview_type === "video") {
+        await ctx.replyWithVideo(pack.media_preview, {
+          parse_mode: "Markdownv2",
+          caption:
+            "*" +
+            pack.title.replace(".", "\\.") +
+            "*" +
+            "\n\n" +
+            pack.description.replace(".", "\\."),
+          ...Markup.inlineKeyboard([
+            Markup.button.url(
+              "Comprar - " + formatPrice.format(pack.price / 100),
+              checkoutURL
+            ),
+          ]),
+          protect_content: true,
+        });
+      }
+      return;
+    }
+
+    const packs = await PackModel.find({ status: "enabled", _id: {$nin: await UserModel.distinct('packs_bought', { telegram_id: ctx.chat.id })} }).lean();
 
     for (let i = 0; i < packs.length; i++) {
       const pack = packs[i];
