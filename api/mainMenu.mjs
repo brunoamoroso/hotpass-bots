@@ -30,9 +30,9 @@ export default function mainMenu(ctx, userRole){
     //     .resize(),
     // });
   }else{ 
-    return ctx.reply("Bem-vindo ao menu de Clientes", {
+    return ctx.reply(`Bem-vindo ao meu menu ${ctx.from.first_name}, o que você quer hoje? 😈`, {
       ...Markup.inlineKeyboard([
-        [Markup.button.callback("❤️‍🔥 Assinaturas", "subscriptionsCustomer")],
+        // [Markup.button.callback("❤️‍🔥 Assinaturas", "subscriptionsCustomer")],
         [Markup.button.callback("📹 Packs", "packsCustomer")],
         [Markup.button.callback("🔗 Links", "linksCustomer")],
       ])
