@@ -308,7 +308,6 @@ export const subscriptionBought = async (bot, botName, customer_chat_id, plan_pg
           ]),
         }
       );
-      return res.status(200).send("ok");
     } catch (err) {
       console.log(err);
     }

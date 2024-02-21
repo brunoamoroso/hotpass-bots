@@ -9,6 +9,8 @@ import * as subscriptions from "./controllers/subscriptionsController.mjs";
 import * as groupChat from './controllers/groupChatController.mjs';
 
 import mainMenu from "./mainMenu.mjs";
+import { getModelByTenant } from "./utils/tenantUtils.mjs";
+import userSchema from "./schemas/User.mjs";
 
 const composer = new Composer();
 
@@ -116,5 +118,26 @@ composer.on('channel_post', async (ctx) => {
       break;
   }
 });
+
+composer.on('chat_join_request', async (ctx) => {
+  if(ctx.chatJoinRequest){
+    try{
+      const requestedUser = ctx.chatJoinRequest.user_chat_id;
+      const UserModel = getModelByTenant(ctx.session.db, "User", userSchema);
+      const UserHasActiveSubscription = await UserModel.findOne({telegram_id: requestedUser, subscriptions_bought: { $elemMatch: {status: "active"}}});
+  
+      if(UserHasActiveSubscription){
+        await ctx.approveChatJoinRequest(UserHasActiveSubscription.telegram_id);
+        await ctx.revokeChatInviteLink(ctx.chatJoinRequest.chat.id, ctx.chatJoinRequest.invite_link.invite_link);
+        return;
+      }
+
+      await ctx.declineChatJoinRequest(ctx.chatJoinRequest.chat.id, requestedUser);
+      await ctx.telegram.sendMessage(requestedUser, "Você não tem uma assinatura ativa para acessar o Grupo VIP");
+    }catch(err){
+      console.log(err);
+    }
+  }
+})
 
 export default composer;
