@@ -25,11 +25,16 @@ app.post("/api/bots/swbot", async (req, res, next) => {
     bot_name
   } = req.body || {};
 
-  if ((type_item_bought !== undefined) && (type_item_bought === "subscription")) {
-    await subscriptions.subscriptionBought(bot, bot_name, customer_chat_id, plan_pgme_id);
+  if (type_item_bought !== undefined && type_item_bought === "subscription") {
+    await subscriptions.subscriptionBought(
+      bot,
+      bot_name,
+      customer_chat_id,
+      plan_pgme_id
+    );
   }
 
-  if((type_item_bought !== undefined) && (type_item_bought === 'pack')){
+  if (type_item_bought !== undefined && type_item_bought === "pack") {
     await packs.packBought(bot, bot_name, customer_chat_id, pack_id);
   }
 
@@ -68,7 +73,7 @@ bot.use(stage.middleware());
 bot.use(async (ctx, next) => {
   ctx.session.db = "swbotdb";
   ctx.session.botName = "swbot";
-  ctx.session.tgBotLink = 'VercelTestebot';
+  ctx.session.tgBotLink = "VercelTestebot";
   return next();
 });
 bot.use(composer);

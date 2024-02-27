@@ -270,6 +270,10 @@ export const subscriptionBought = async (bot, botName, customer_chat_id, plan_pg
       const plansController = new PlansController(client);
       const { result } = await plansController.getPlan(plan_pgme_id);
 
+      const date = new Date();
+      const daysToExp = result.intervalCount * ((result.interval === "month") ? 30 : 7)
+      const expDate = date.setDate(date.getDate() + daysToExp);
+
       const subscriptionBought = {
         _id: new mongoose.Types.ObjectId().toString(),
         plan_id: result.id,
@@ -279,6 +283,7 @@ export const subscriptionBought = async (bot, botName, customer_chat_id, plan_pg
         price: result.items[0].pricingScheme.price,
         status: "active",
         date_bought: new Date(),
+        date_exp: new Date(expDate),
       }
 
       // update user with subscription bought for future marketing strategies

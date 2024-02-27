@@ -32,7 +32,7 @@ export default function mainMenu(ctx, userRole){
   }else{ 
     return ctx.reply(`Bem-vindo ao meu menu ${ctx.from.first_name}, o que você quer hoje? 😈`, {
       ...Markup.inlineKeyboard([
-        // [Markup.button.callback("❤️‍🔥 Assinaturas", "subscriptionsCustomer")],
+        [Markup.button.callback("❤️‍🔥 Assinaturas", "subscriptionsCustomer")],
         [Markup.button.callback("📹 Packs", "packsCustomer")],
         [Markup.button.callback("🔗 Links", "linksCustomer")],
       ])

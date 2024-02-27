@@ -14,7 +14,7 @@ configDotenv();
 
 const app = express();
 
-const bot = new Telegraf(process.env.HOTSENSEBOT_TOKEN);
+const bot = new Telegraf(process.env.HOTSENSE_TOKEN);
 
 // setting webhook to receive updates
 app.use(
