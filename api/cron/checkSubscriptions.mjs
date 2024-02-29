@@ -3,7 +3,6 @@ import userSchema from "../schemas/User.mjs";
 import { getModelByTenant } from "../utils/tenantUtils.mjs";
 import { Telegraf } from "telegraf";
 import express from "express";
-import * as subscriptions from "../controllers/subscriptionsController.mjs";
 
 export default async function checkSubscriptions() {
   const bots = [
@@ -35,11 +34,9 @@ export default async function checkSubscriptions() {
         botConfigSchema
       );
 
-      console.log(`concectou no ${bot.name}`)
       const botConfigs = await BotConfigModel.findOne().lean();
-      console.log(botConfigs);
 
-      if(!botConfigs){
+      if (!botConfigs) {
         console.log(`Bot, ${bot.name}, hasn't configured its botConfigs`);
         return;
       }
@@ -61,7 +58,7 @@ export default async function checkSubscriptions() {
         },
       };
 
-      const users = await UserModel.find(query).lean();
+      let users = await UserModel.find(query).lean();
 
       if (users.length === 0) {
         console.log(
@@ -70,9 +67,17 @@ export default async function checkSubscriptions() {
         return;
       }
 
-      //remove users from the vip channel
-      users.forEach((user) => {
-        telegramBot.telegram.banChatMember(
+      const chatAdmins = await telegramBot.telegram.getChatAdministrators(
+        botConfigs.vip_chat_id
+      );
+
+      //remove admins and creators from the list to be banned from the channel
+      const usersFiltered = users.filter(({ telegram_id }) => {
+        return !chatAdmins.some((admin) => admin.user.id === telegram_id);
+      });
+
+      usersFiltered.forEach(async (user) => {
+        await telegramBot.telegram.banChatMember(
           botConfigs.vip_chat_id,
           user.telegram_id
         );
@@ -84,10 +89,12 @@ export default async function checkSubscriptions() {
           "subscriptions_bought.$[].status": "inactive",
         },
       };
-      
+
       await UserModel.updateMany(query, updateQuery);
     });
   } catch (err) {
     console.log(err);
   }
 }
+
+function renewedSubscription() {}
