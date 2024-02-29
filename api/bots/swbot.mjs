@@ -19,18 +19,20 @@ const bot = new Telegraf(process.env.SWBOTTOKEN);
 app.post("/api/bots/swbot", async (req, res, next) => {
   const {
     customer_chat_id,
-    plan_pgme_id,
+    subscription_id,
     pack_id,
     type_item_bought,
     bot_name
   } = req.body || {};
+
+  console.log(req.body);
 
   if (type_item_bought !== undefined && type_item_bought === "subscription") {
     await subscriptions.subscriptionBought(
       bot,
       bot_name,
       customer_chat_id,
-      plan_pgme_id
+      subscription_id,
     );
   }
 

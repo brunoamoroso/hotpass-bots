@@ -24,10 +24,6 @@
     {
       "path": "/api/cron/checkSubscriptions.mjs",
       "schedule": "59 23 * * *"
-    },
-    {
-      "path": "api/cron/renewSubscriptions.mjs",
-      "schedule": "0 1 * * *"
     }
   ]
 }

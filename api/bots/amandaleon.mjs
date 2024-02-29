@@ -19,8 +19,7 @@ const bot = new Telegraf(process.env.AMANDALEON_TOKEN);
 app.post("/api/bots/amandaleon", async (req, res, next) => {
   const {
     customer_chat_id,
-    customer_pgme_id,
-    plan_pgme_id,
+    subscription_id,
     pack_id,
     type_item_bought,
     bot_name
@@ -31,8 +30,7 @@ app.post("/api/bots/amandaleon", async (req, res, next) => {
       bot,
       bot_name,
       customer_chat_id,
-      customer_pgme_id,
-      plan_pgme_id
+      subscription_id,
     );
   }
 
