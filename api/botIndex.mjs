@@ -6,21 +6,23 @@ import * as links from "./controllers/linkAgreggatorController.mjs";
 import * as admins from "./controllers/adminsController.mjs";
 import * as auth from "./controllers/authController.mjs";
 import * as subscriptions from "./controllers/subscriptionsController.mjs";
-import * as groupChat from './controllers/groupChatController.mjs';
+import * as groupChat from "./controllers/groupChatController.mjs";
 
 import mainMenu from "./mainMenu.mjs";
 import { getModelByTenant } from "./utils/tenantUtils.mjs";
 import userSchema from "./schemas/User.mjs";
+import botConfigSchema from "./schemas/BotConfig.mjs";
+import mongoose from "mongoose";
 
 const composer = new Composer();
 
 composer.start(async (ctx) => {
   const payload = ctx.payload.split("_");
-  if(payload[0] === "buyPacks"){
+  if (payload[0] === "buyPacks") {
     await ctx.scene.enter("buyPacks");
     return;
   }
-  
+
   await auth.authUser(ctx.from, ctx.session.db).then((role) => {
     mainMenu(ctx, role);
   });
@@ -107,7 +109,7 @@ composer.action("viewAdmins", async (ctx) => {
 });
 
 //Define Target Chats
-composer.on('channel_post', async (ctx) => {
+composer.on("channel_post", async (ctx) => {
   switch (ctx.channelPost.text) {
     case "/setVipChat":
       groupChat.setVipChat(ctx);
@@ -116,28 +118,112 @@ composer.on('channel_post', async (ctx) => {
     case "/setPreviewChat":
       groupChat.setPreviewChat(ctx);
       break;
+
+    case "/migrate":
+      await migrate(ctx);
+      break;
   }
 });
 
-composer.on('chat_join_request', async (ctx) => {
-  if(ctx.chatJoinRequest){
-    try{
+composer.on("chat_join_request", async (ctx) => {
+  if (ctx.chatJoinRequest) {
+    try {
       const requestedUser = ctx.chatJoinRequest.user_chat_id;
       const UserModel = getModelByTenant(ctx.session.db, "User", userSchema);
-      const UserHasActiveSubscription = await UserModel.findOne({telegram_id: requestedUser, subscriptions_bought: { $elemMatch: {status: "active"}}});
-  
-      if(UserHasActiveSubscription){
+      const UserHasActiveSubscription = await UserModel.findOne({
+        telegram_id: requestedUser,
+        subscriptions_bought: { $elemMatch: { status: "active" } },
+      });
+
+      if (UserHasActiveSubscription) {
         await ctx.approveChatJoinRequest(UserHasActiveSubscription.telegram_id);
-        await ctx.revokeChatInviteLink(ctx.chatJoinRequest.chat.id, ctx.chatJoinRequest.invite_link.invite_link);
+        await ctx.revokeChatInviteLink(
+          ctx.chatJoinRequest.chat.id,
+          ctx.chatJoinRequest.invite_link.invite_link
+        );
         return;
       }
 
-      await ctx.declineChatJoinRequest(ctx.chatJoinRequest.chat.id, requestedUser);
-      await ctx.telegram.sendMessage(requestedUser, "Você não tem uma assinatura ativa para acessar o Grupo VIP");
-    }catch(err){
+      await ctx.declineChatJoinRequest(
+        ctx.chatJoinRequest.chat.id,
+        requestedUser
+      );
+      await ctx.telegram.sendMessage(
+        requestedUser,
+        "Você não tem uma assinatura ativa para acessar o Grupo VIP"
+      );
+    } catch (err) {
       console.log(err);
     }
   }
-})
+});
+
+composer.command("migrate", async (ctx) => {
+  await migrate(ctx);
+});
 
 export default composer;
+
+async function migrate(ctx) {
+  const botConfigsModel = getModelByTenant(
+    ctx.session.db,
+    "BotConfig",
+    botConfigSchema
+  );
+  const UserModel = getModelByTenant(ctx.session.db, "User", userSchema);
+
+  const botConfigs = await botConfigsModel.findOne().lean();
+  const users = await UserModel.find({
+    subscriptions_bought: {
+      $not: {
+        $elemMatch:{
+          name: "Subscription Migration"
+        }
+      }
+    }
+  }).lean();
+
+  const chatAdmins = await ctx.telegram.getChatAdministrators(
+    botConfigs.vip_chat_id
+  );
+
+  //remove admins and creators from the list to be banned from the channel
+  const usersFiltered = users.filter(({ telegram_id }) => {
+    return !chatAdmins.some((admin) => admin.user.id === telegram_id);
+  });
+
+
+  const subscriptionMigrated = {
+    _id: new mongoose.Types.ObjectId().toString(),
+    name: "Subscription Migration",
+    interval: "month",
+    intervalCount: 1,
+    price: 0,
+    status: "active",
+    date_bought: new Date("2024-03-01T00:00:00Z"),
+    date_exp: new Date("2024-04-01T00:00:00Z"),
+  };
+
+  for (let i = 0; i < users.length; i++) {
+    const user = users[i];
+    const userVIP = await ctx.telegram.getChatMember(botConfigs.vip_chat_id, user.telegram_id);
+    if (userVIP.status === "member") {
+      await UserModel.findOneAndUpdate(
+        { telegram_id: user.telegram_id },
+        {
+          $set: {
+            interest_level: "high",
+          },
+          $push: {
+            subscriptions_bought: subscriptionMigrated,
+          },
+        }
+      );
+    }
+  }
+
+  await ctx.sendMessage({
+    chat_id: 6588724288,
+    text: `A migração de usuários do ${ctx.session.botName} está  completa. Foram migrados ${usersFiltered.length} usuários`
+  })
+}
