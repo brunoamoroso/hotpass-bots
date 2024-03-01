@@ -19,17 +19,22 @@ const bot = new Telegraf(process.env.AMANDALEON_TOKEN);
 app.post("/api/bots/amandaleon", async (req, res, next) => {
   const {
     customer_chat_id,
-    plan_pgme_id,
+    subscription_id,
     pack_id,
     type_item_bought,
     bot_name
   } = req.body || {};
 
-  if ((type_item_bought !== undefined) && (type_item_bought === "subscription")) {
-    await subscriptions.subscriptionBought(bot, bot_name, customer_chat_id, plan_pgme_id);
+  if (type_item_bought !== undefined && type_item_bought === "subscription") {
+    await subscriptions.subscriptionBought(
+      bot,
+      bot_name,
+      customer_chat_id,
+      subscription_id,
+    );
   }
 
-  if((type_item_bought !== undefined) && (type_item_bought === 'pack')){
+  if (type_item_bought !== undefined && type_item_bought === "pack") {
     await packs.packBought(bot, bot_name, customer_chat_id, pack_id);
   }
 
@@ -68,7 +73,7 @@ bot.use(stage.middleware());
 bot.use(async (ctx, next) => {
   ctx.session.db = "amandaleondb";
   ctx.session.botName = "amandaleon";
-  ctx.session.tgBotLink = 'Amanda_LeonBot';
+  ctx.session.tgBotLink = "Amanda_LeonBot";
   return next();
 });
 

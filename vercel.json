@@ -19,5 +19,11 @@
         }
       ]
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/checkSubscriptions.mjs",
+      "schedule": "59 23 * * *"
+    }
   ]
 }

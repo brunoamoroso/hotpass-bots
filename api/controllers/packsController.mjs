@@ -688,7 +688,7 @@ buyPacks.enter(async (ctx) => {
   }
 });
 
-export const packBought = async (bot, bot_name, customer_chat_id, pack_id) => {
+export const packBought = async (bot, bot_name, customer_chat_id, customer_pgme_id, pack_id) => {
   try {
     const PackModel = getModelByTenant(bot_name + "db", "Pack", packSchema);
     const Pack = await PackModel.findById(pack_id).lean();

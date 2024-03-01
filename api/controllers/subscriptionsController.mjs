@@ -2,7 +2,7 @@ import { Markup, Scenes } from "telegraf";
 import subscriptionSchema from "../schemas/Subscriptions.mjs";
 import cycleFormat from "../utils/cycleFormat.mjs";
 import { getModelByTenant } from "../utils/tenantUtils.mjs";
-import { ApiError, PlansController } from "@pagarme/pagarme-nodejs-sdk";
+import { ApiError, PlansController, SubscriptionsController } from "@pagarme/pagarme-nodejs-sdk";
 import client from "../utils/pgmeClient.mjs";
 import { configDotenv } from "dotenv";
 import base64 from "base-64";
@@ -262,29 +262,49 @@ buySubscription.enter(async (ctx) => {
   }
 });
 
-export const subscriptionBought = async (bot, botName, customer_chat_id, plan_pgme_id) => {
+export const subscriptionBought = async (bot, botName, customer_chat_id, subscription_id) => {
     try {
       const BotConfig = getModelByTenant(botName+"db", "BotConfig", botConfigSchema);
       const vipChat = await BotConfig.findOne().lean();
 
-      const plansController = new PlansController(client);
-      const { result } = await plansController.getPlan(plan_pgme_id);
+      //from pagar.me
+
+      const user = process.env.PGMSK;
+      const password = "";
+
+      const subscriptionData = await fetch(
+        `https://api.pagar.me/core/v5/subscriptions/${subscription_id}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Basic ${base64.encode(`${user}:${password}`)}`,
+          },
+        }
+      ).then((resp) => {
+        if (!resp.ok) {
+          throw new Error(resp.statusText);
+        }
+        return resp.json();
+      });
 
       const subscriptionBought = {
         _id: new mongoose.Types.ObjectId().toString(),
-        plan_id: result.id,
-        name: result.name,
-        interval: result.interval,
-        intervalCount: result.intervalCount,
-        price: result.items[0].pricingScheme.price,
+        subscription_id: subscription_id,
+        plan_id: subscriptionData.plan.id,
+        name: subscriptionData.plan.name,
+        interval: subscriptionData.plan.interval,
+        intervalCount: subscriptionData.plan.interval_count,
+        price: subscriptionData.plan.minimum_price,
         status: "active",
         date_bought: new Date(),
+        date_exp: new Date(subscriptionData.next_billing_at),
       }
 
       // update user with subscription bought for future marketing strategies
       const UserModel = getModelByTenant(botName+"db", "User", userSchema);
       await UserModel.findOneAndUpdate({telegram_id: customer_chat_id}, {
-        $set: {interest_level: "high"},
+        $set: {customer_pgme_id: subscriptionData.customer.id, interest_level: "high"},
         $push: {subscriptions_bought: subscriptionBought}});
 
       const chatInviteLink = await bot.telegram.createChatInviteLink(
