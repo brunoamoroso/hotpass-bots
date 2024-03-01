@@ -48,6 +48,8 @@ export default async function checkSubscriptions() {
 
       const UserModel = getModelByTenant(bot.name + "db", "User", userSchema);
 
+      console.log(new Date());
+
       // the solution with the updateMany has a problem of not returning the documents so it isn't possible to remove them from the vip channel
       const query = {
         subscriptions_bought: {
@@ -56,9 +58,11 @@ export default async function checkSubscriptions() {
             date_exp: { $lte: new Date() },
           },
         },
-      };
-
+      }; 
       let users = await UserModel.find(query).lean();
+
+      renewedSubscription(users);
+      return;
 
       if (users.length === 0) {
         console.log(
@@ -97,4 +101,7 @@ export default async function checkSubscriptions() {
   }
 }
 
-function renewedSubscription() {}
+function renewedSubscription(users) {
+  console.log(users);
+  return users;
+}

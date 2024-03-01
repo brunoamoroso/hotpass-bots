@@ -298,7 +298,7 @@ export const subscriptionBought = async (bot, botName, customer_chat_id, subscri
         price: subscriptionData.plan.minimum_price,
         status: "active",
         date_bought: new Date(),
-        date_exp: subscriptionData.next_billing_at,
+        date_exp: new Date(subscriptionData.next_billing_at),
       }
 
       // update user with subscription bought for future marketing strategies
