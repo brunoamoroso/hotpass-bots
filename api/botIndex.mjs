@@ -159,71 +159,7 @@ composer.on("chat_join_request", async (ctx) => {
 });
 
 composer.command("migrate", async (ctx) => {
-  await migrate(ctx);
+  await ctx.scene.enter("migrate");
 });
 
 export default composer;
-
-async function migrate(ctx) {
-  const botConfigsModel = getModelByTenant(
-    ctx.session.db,
-    "BotConfig",
-    botConfigSchema
-  );
-  const UserModel = getModelByTenant(ctx.session.db, "User", userSchema);
-
-  const botConfigs = await botConfigsModel.findOne().lean();
-  const users = await UserModel.find({
-    subscriptions_bought: {
-      $not: {
-        $elemMatch:{
-          name: "Subscription Migration"
-        }
-      }
-    }
-  }).lean();
-
-  const chatAdmins = await ctx.telegram.getChatAdministrators(
-    botConfigs.vip_chat_id
-  );
-
-  //remove admins and creators from the list to be banned from the channel
-  const usersFiltered = users.filter(({ telegram_id }) => {
-    return !chatAdmins.some((admin) => admin.user.id === telegram_id);
-  });
-
-
-  const subscriptionMigrated = {
-    _id: new mongoose.Types.ObjectId().toString(),
-    name: "Subscription Migration",
-    interval: "month",
-    intervalCount: 1,
-    price: 0,
-    status: "active",
-    date_bought: new Date("2024-03-01T00:00:00Z"),
-    date_exp: new Date("2024-04-01T00:00:00Z"),
-  };
-
-  for (let i = 0; i < users.length; i++) {
-    const user = users[i];
-    const userVIP = await ctx.telegram.getChatMember(botConfigs.vip_chat_id, user.telegram_id);
-    if (userVIP.status === "member") {
-      await UserModel.findOneAndUpdate(
-        { telegram_id: user.telegram_id },
-        {
-          $set: {
-            interest_level: "high",
-          },
-          $push: {
-            subscriptions_bought: subscriptionMigrated,
-          },
-        }
-      );
-    }
-  }
-
-  await ctx.sendMessage({
-    chat_id: 6588724288,
-    text: `A migração de usuários do ${ctx.session.botName} está  completa. Foram migrados ${usersFiltered.length} usuários`
-  })
-}
