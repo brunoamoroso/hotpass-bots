@@ -9,6 +9,7 @@ import * as packs from "../controllers/packsController.mjs";
 import * as links from "../controllers/linkAgreggatorController.mjs";
 import * as admins from "../controllers/adminsController.mjs";
 import * as subscriptions from "../controllers/subscriptionsController.mjs";
+import * as migration from '../controllers/migrationController.mjs';
 
 configDotenv();
 
@@ -61,6 +62,7 @@ const stage = new Scenes.Stage([
   subscriptions.createSubscriptionPlan,
   subscriptions.viewActiveSubscriptionsPlan,
   subscriptions.buySubscription,
+  migration.migrate,
 ]);
 
 const store = Mongo({
@@ -78,7 +80,7 @@ bot.use(async (ctx, next) => {
 });
 bot.use(composer);
 
-bot.command("/sair", async (ctx) => {
+bot.command("sair", async (ctx) => {
   await ctx.scene.leave();
   await ctx.reply("Saindo");
 });
