@@ -36,8 +36,6 @@ export default function mainMenu(ctx, userRole){
         [Markup.button.callback("📹 Packs", "packsCustomer")],
         [Markup.button.callback("🔗 Links", "linksCustomer")],
       ])
-        .oneTime()
-        .resize(),
     });
   }
 };
