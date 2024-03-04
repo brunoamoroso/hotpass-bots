@@ -65,6 +65,10 @@ const stage = new Scenes.Stage([
   migration.migrate,
 ]);
 
+stage.command("cancelar", async (ctx) => {
+  return ctx.scene.leave();
+});
+
 const store = Mongo({
   url: process.env.MONGODB_URI,
   database: "swbotdb",
