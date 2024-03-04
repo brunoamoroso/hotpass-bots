@@ -118,10 +118,6 @@ composer.on("channel_post", async (ctx) => {
     case "/setPreviewChat":
       groupChat.setPreviewChat(ctx);
       break;
-
-    case "/migrate":
-      await migrate(ctx);
-      break;
   }
 });
 
