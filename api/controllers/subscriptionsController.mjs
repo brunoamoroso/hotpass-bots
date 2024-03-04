@@ -225,6 +225,12 @@ buySubscription.enter(async (ctx) => {
       (plan) => plan.metadata?.botId === ctx.botInfo.id.toString()
     );
     const plans = filteredPlans;
+    console.log(plans.length);
+
+    if(plans.length === 0){
+      await ctx.reply("😔 Desculpa, ainda não foi criado nenhuma plano de assinatura VIP");
+      return;
+    }
   
     const priceFormat = new Intl.NumberFormat("pt-br", {
       style: "currency",
