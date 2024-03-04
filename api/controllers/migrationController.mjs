@@ -108,7 +108,6 @@ export const migrate = new Scenes.WizardScene(
 
       const UserModel = getModelByTenant(ctx.session.db, "User", userSchema);
       const result = await UserModel.insertMany(migrateUsers);
-      console.log(result);
       await ctx.reply(`Foram migrados ${result.length} usuários`);
     } catch (err) {
       console.log(err);
