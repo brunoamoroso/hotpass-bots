@@ -59,10 +59,6 @@ export const migrate = new Scenes.WizardScene(
     let migrateUsers = [];
     let userToMigrate = {};
 
-    function wait(ms){
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
     try {
       for (let i = 0; i < arrayIds.length; i++) {
         const telegramId = parseInt(arrayIds[i]);
@@ -108,7 +104,6 @@ export const migrate = new Scenes.WizardScene(
             break;
         }
         migrateUsers.push(userToMigrate);
-        await wait(1000);
       }
 
       const UserModel = getModelByTenant(ctx.session.db, "User", userSchema);
