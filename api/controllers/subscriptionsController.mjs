@@ -147,45 +147,77 @@ export const createSubscriptionPlan = new Scenes.WizardScene(
   }
 );
 
-export const viewActiveSubscriptionsPlan = new Scenes.WizardScene(
-  "viewActiveSubscriptionsPlan",
-  async (ctx) => {
-    const plansController = new PlansController(client);
-    const { result } = await plansController.getPlans();
-    const filteredPlans = result.data.filter(
-      (plan) => plan.metadata.botId === ctx.botInfo.id.toString()
+export const viewActiveSubscriptionsPlan = new Scenes.BaseScene("viewActiveSubscriptionsPlan");
+
+viewActiveSubscriptionsPlan.enter(async (ctx) => {
+  const plansController = new PlansController(client);
+  const { result } = await plansController.getPlans();
+
+  const filteredPlans = result.data.filter(
+    (plan) => 
+      plan.metadata &&
+      plan.metadata.botId &&
+      plan.metadata.botId === ctx.botInfo.id.toString()
+  );
+  const plans = filteredPlans;
+
+  for (let i = 0; i < plans.length; i++) {
+    const plan = plans[i];
+
+    const priceFormat = new Intl.NumberFormat("pt-br", {
+      style: "currency",
+      currency: "BRL",
+    });
+
+    const planPrice = plan.items[0].pricingScheme.price;
+
+    await ctx.replyWithMarkdownV2(
+      "*_Nome do Plano:_*\n" +
+        plan.name +
+        "\n\n*_Preço do Plano:_*\n" +
+        priceFormat.format(planPrice / 100).replace(".", "\\.") +
+        "\n\n*_Ciclo de cobrança do Plano:_*\n" +
+        plan.intervalCount +
+        " " +
+        cycleFormat(plan.intervalCount, plan.interval) +
+        "\n\n*_Assinantes Ativos:_*\n" +
+        "Teste",
+      {
+        ...Markup.inlineKeyboard([
+          [Markup.button.callback("❌ Desativar", plan.name+"+"+plan.id)]
+        ])
+      }
     );
-    const plans = filteredPlans;
-
-    for (let i = 0; i < plans.length; i++) {
-      const plan = plans[i];
-
-      const priceFormat = new Intl.NumberFormat("pt-br", {
-        style: "currency",
-        currency: "BRL",
-      });
-
-      const planPrice = plan.items[0].pricingScheme.price;
-
-      await ctx.reply(
-        "*_Nome do Plano:_*\n" +
-          plan.name +
-          "\n\n*_Preço do Plano:_*\n" +
-          priceFormat.format(planPrice / 100).replace(".", "\\.") +
-          "\n\n*_Ciclo de cobrança do Plano:_*\n" +
-          plan.intervalCount +
-          " " +
-          cycleFormat(plan.intervalCount, plan.interval) +
-          "\n\n*_Assinantes Ativos:_*\n" +
-          "Teste",
-        {
-          parse_mode: "MarkdownV2",
-        }
-      );
-    }
-    return ctx.scene.leave();
   }
-);
+});
+
+viewActiveSubscriptionsPlan.on("callback_query", async (ctx) => {
+  if(ctx.callbackQuery.data === "yes"){
+    try{
+      const plansController = new PlansController(client);
+      const {result} = await plansController.deletePlan(ctx.scene.session.planId);
+      console.log(result);
+
+      if(result.status === 'deleted'){
+        await ctx.replyWithMarkdownV2(`O plano\\, *${result.name}*\\, foi desativado com sucesso\\!\n\Você pode desativar outros planos ou utilize \/cancelar para sair e depois \/start para ir ao menu principal novamente\\.`);
+        return;
+      }
+    }catch(err){
+      console.log(err)
+    }
+  }else{
+    const plan = ctx.callbackQuery.data.split("+");
+    ctx.scene.session.planId = plan[1];
+    await ctx.replyWithMarkdownV2(`Você tem certeza que quer desativar o plano\\, *${plan[0].replace("_", "\\_")}*\\, de assinatura?\n\nOs usuários ativos vão permanecer até que acabe o tempo da assinatura que compraram\\.`, {
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback("Sim", "yes")],
+        [Markup.button.callback("Não", "no")]
+      ])
+    })
+  }
+
+
+});
 
 export const buySubscription = new Scenes.BaseScene("buySubscription");
 

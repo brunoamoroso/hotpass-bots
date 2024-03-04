@@ -30,16 +30,16 @@ composer.start(async (ctx) => {
 
 //Subscriptions
 //Admin
-composer.action("subscriptions", (ctx) => {
-  subscriptions.sendMenu(ctx);
+composer.action("subscriptions", async (ctx) => {
+  await subscriptions.sendMenu(ctx);
 });
 
-composer.action("createSubscriptionPlan", (ctx) => {
-  ctx.scene.enter("createSubscriptionPlan");
+composer.action("createSubscriptionPlan", async (ctx) => {
+  await ctx.scene.enter("createSubscriptionPlan");
 });
 
-composer.action("viewActiveSubscriptionsPlan", (ctx) => {
-  ctx.scene.enter("viewActiveSubscriptionsPlan");
+composer.action("viewActiveSubscriptionsPlan", async (ctx) => {
+  await ctx.scene.enter("viewActiveSubscriptionsPlan");
 });
 
 // Customer
