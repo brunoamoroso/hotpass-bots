@@ -59,54 +59,62 @@ export const migrate = new Scenes.WizardScene(
     let migrateUsers = [];
     let userToMigrate = {};
 
-    const UserModel = getModelByTenant(ctx.session.db, "User", userSchema);
+    try {
+      for (let i = 0; i < arrayIds.length; i++) {
+        const telegramId = parseInt(arrayIds[i]);
+        
+        let telegramUser = "";
+        
+        setTimeout(async () => {
+          telegramUser = await ctx.telegram.getChatMember(
+            chatId,
+            telegramId
+          );
+        },  1000);
 
-    for (let i = 0; i < arrayIds.length; i++) {
-      const telegramId = parseInt(arrayIds[i]);
-      const telegramUser = await ctx.telegram.getChatMember(chatId, telegramId);
+        if (telegramUser.user.is_bot) {
+          continue;
+        }
 
-      if (telegramUser.user.is_bot) {
-        continue;
+        switch (chatType) {
+          case "vip":
+            userToMigrate = {
+              telegram_id: telegramUser.user.id,
+              first_name: telegramUser.user.first_name || "",
+              last_name: telegramUser.user.last_name || "",
+              username: telegramUser.user.username || "",
+              subscriptions_bought: [
+                {
+                  _id: new mongoose.Types.ObjectId().toString(),
+                  name: "Subscription Migration",
+                  interval: "month",
+                  intervalCount: 1,
+                  price: 0,
+                  status: "active",
+                  date_bought: new Date("2024-03-01T00:00:00Z"),
+                  date_exp: new Date("2024-04-01T00:00:00Z"),
+                },
+              ],
+            };
+            break;
+
+          case "preview":
+            userToMigrate = {
+              telegram_id: telegramUser.user.id,
+              first_name: telegramUser.user.first_name || "",
+              last_name: telegramUser.user.last_name || "",
+              username: telegramUser.user.username || "",
+            };
+            break;
+        }
+        migrateUsers.push(userToMigrate);
       }
 
-      switch (chatType) {
-        case "vip":
-          userToMigrate = {
-            telegram_id: telegramUser.user.id,
-            first_name: telegramUser.user.first_name || '',
-            last_name: telegramUser.user.last_name || '',
-            username: telegramUser.user.username || '',
-            subscriptions_bought: [{
-              _id: new mongoose.Types.ObjectId().toString(),
-              name: "Subscription Migration",
-              interval: "month",
-              intervalCount: 1,
-              price: 0,
-              status: "active",
-              date_bought: new Date("2024-03-01T00:00:00Z"),
-              date_exp: new Date("2024-04-01T00:00:00Z"),
-            }],
-          };
-          break;
-
-
-        case "preview":
-          userToMigrate = {
-            telegram_id: telegramUser.user.id,
-            first_name: telegramUser.user.first_name || '',
-            last_name: telegramUser.user.last_name || '',
-            username: telegramUser.user.username || '',
-          };
-          break;
-      }
-      migrateUsers.push(userToMigrate);
-    }
-
-    try{
+      const UserModel = getModelByTenant(ctx.session.db, "User", userSchema);
       const result = await UserModel.insertMany(migrateUsers);
       console.log(result);
       await ctx.reply(`Foram migrados ${result.length} usuários`);
-    }catch(err){
+    } catch (err) {
       console.log(err);
     }
     return ctx.scene.leave();
