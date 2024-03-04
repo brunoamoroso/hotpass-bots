@@ -64,6 +64,7 @@ export const migrate = new Scenes.WizardScene(
     for (let i = 0; i < arrayIds.length; i++) {
       const telegramId = parseInt(arrayIds[i]);
       const telegramUser = await ctx.telegram.getChatMember(chatId, telegramId);
+      console.log(telegramUser);
 
       if (telegramUser.user.is_bot) {
         continue;
