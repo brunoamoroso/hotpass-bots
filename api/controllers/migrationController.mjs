@@ -64,7 +64,6 @@ export const migrate = new Scenes.WizardScene(
     for (let i = 0; i < arrayIds.length; i++) {
       const telegramId = parseInt(arrayIds[i]);
       const telegramUser = await ctx.telegram.getChatMember(chatId, telegramId);
-      console.log(telegramUser);
 
       if (telegramUser.user.is_bot) {
         continue;
@@ -74,9 +73,9 @@ export const migrate = new Scenes.WizardScene(
         case "vip":
           userToMigrate = {
             telegram_id: telegramUser.user.id,
-            first_name: telegramUser.user.first_name,
-            last_name: telegramUser.user.last_name,
-            username: telegramUser.user.username,
+            first_name: telegramUser.user.first_name || '',
+            last_name: telegramUser.user.last_name || '',
+            username: telegramUser.user.username || '',
             subscriptions_bought: [{
               _id: new mongoose.Types.ObjectId().toString(),
               name: "Subscription Migration",
@@ -94,9 +93,9 @@ export const migrate = new Scenes.WizardScene(
         case "preview":
           userToMigrate = {
             telegram_id: telegramUser.user.id,
-            first_name: telegramUser.user.first_name,
-            last_name: telegramUser.user.last_name,
-            username: telegramUser.user.username,
+            first_name: telegramUser.user.first_name || '',
+            last_name: telegramUser.user.last_name || '',
+            username: telegramUser.user.username || '',
           };
           break;
       }
