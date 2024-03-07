@@ -1,4 +1,4 @@
-import express from "express";
+import express, { urlencoded } from "express";
 import { configDotenv } from "dotenv";
 import { Telegraf, Scenes, session, Markup } from "telegraf";
 import { Mongo } from "@telegraf/session/mongodb";
@@ -14,6 +14,14 @@ import * as migration from '../controllers/migrationController.mjs';
 configDotenv();
 
 const app = express();
+
+app.use(
+  express.urlencoded({
+    extended: true,
+  })
+);
+
+app.use(express.json());
 
 const bot = new Telegraf(process.env.AMANDALEON_TOKEN);
 
