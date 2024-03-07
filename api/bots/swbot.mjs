@@ -32,6 +32,8 @@ app.post("/api/bots/swbot", async (req, res, next) => {
       bot_name,
       customer_chat_id,
       subscription_id,
+      order_id,
+      plan_id
     );
   }
 
