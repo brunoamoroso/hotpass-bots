@@ -305,8 +305,6 @@ export const subscriptionBought = async (bot, botName, customer_chat_id, subscri
       const BotConfig = getModelByTenant(botName+"db", "BotConfig", botConfigSchema);
       const vipChat = await BotConfig.findOne().lean();
 
-      //from pagar.me
-
       const user = process.env.PGMSK;
       const password = "";
 
