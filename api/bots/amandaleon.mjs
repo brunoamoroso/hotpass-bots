@@ -28,6 +28,8 @@ app.post("/api/bots/amandaleon", async (req, res, next) => {
     bot_name
   } = req.body || {};
 
+  console.log(req.body);
+
   if (type_item_bought !== undefined && type_item_bought === "subscription") {
     await subscriptions.subscriptionBought(
       bot,
