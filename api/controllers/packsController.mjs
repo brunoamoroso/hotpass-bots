@@ -426,7 +426,7 @@ createPack.action("save", async (ctx) => {
         switch (packData.mediaPreviewType) {
           case "photo":
             await ctx.telegram.sendPhoto(
-              botConfigs.vip_chat_id,
+              botConfigs.preview_chat_id,
               packData.mediaPreview,
               {
                 caption: packData.title + "\n\n" + packData.description,
@@ -447,7 +447,7 @@ createPack.action("save", async (ctx) => {
 
           case "video":
             await ctx.telegram.sendVideo(
-              botConfigs.vip_chat_id,
+              botConfigs.preview_chat_id,
               packData.mediaPreview,
               {
                 caption: packData.title + "\n\n" + packData.description,
