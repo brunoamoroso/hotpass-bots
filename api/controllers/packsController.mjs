@@ -690,8 +690,10 @@ buyPacks.enter(async (ctx) => {
 
 export const packBought = async (bot, bot_name, customer_chat_id, customer_pgme_id, pack_id) => {
   try {
+    console.log(pack_id);
     const PackModel = getModelByTenant(bot_name + "db", "Pack", packSchema);
     const Pack = await PackModel.findById(pack_id).lean();
+    console.log(Pack);
     Pack.date_bought = new Date();
 
     const UserModel = getModelByTenant(bot_name + "db", "User", userSchema);
