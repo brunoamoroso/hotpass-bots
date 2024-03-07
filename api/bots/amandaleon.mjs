@@ -21,6 +21,8 @@ app.post("/api/bots/amandaleon", async (req, res, next) => {
   const {
     customer_chat_id,
     subscription_id,
+    order_id,
+    plan_id,
     pack_id,
     type_item_bought,
     bot_name
@@ -32,6 +34,8 @@ app.post("/api/bots/amandaleon", async (req, res, next) => {
       bot_name,
       customer_chat_id,
       subscription_id,
+      order_id,
+      plan_id
     );
   }
 

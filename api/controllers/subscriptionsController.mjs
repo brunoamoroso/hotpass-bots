@@ -300,7 +300,7 @@ buySubscription.enter(async (ctx) => {
   }
 });
 
-export const subscriptionBought = async (bot, botName, customer_chat_id, subscription_id) => {
+export const subscriptionBought = async (bot, botName, customer_chat_id, subscription_id, order_id, plan_id) => {
     try {
       const BotConfig = getModelByTenant(botName+"db", "BotConfig", botConfigSchema);
       const vipChat = await BotConfig.findOne().lean();
@@ -310,39 +310,67 @@ export const subscriptionBought = async (bot, botName, customer_chat_id, subscri
       const user = process.env.PGMSK;
       const password = "";
 
-      const subscriptionData = await fetch(
-        `https://api.pagar.me/core/v5/subscriptions/${subscription_id}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Basic ${base64.encode(`${user}:${password}`)}`,
-          },
-        }
-      ).then((resp) => {
-        if (!resp.ok) {
-          throw new Error(resp.statusText);
-        }
-        return resp.json();
-      });
+      let subscriptionBought = {};
 
-      const subscriptionBought = {
-        _id: new mongoose.Types.ObjectId().toString(),
-        subscription_id: subscription_id,
-        plan_id: subscriptionData.plan.id,
-        name: subscriptionData.plan.name,
-        interval: subscriptionData.plan.interval,
-        intervalCount: subscriptionData.plan.interval_count,
-        price: subscriptionData.plan.minimum_price,
-        status: "active",
-        date_bought: new Date(),
-        date_exp: new Date(subscriptionData.next_billing_at),
+      if(subscription_id){
+          const subscriptionData = await fetch(
+            `https://api.pagar.me/core/v5/subscriptions/${subscription_id}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Basic ${base64.encode(`${user}:${password}`)}`,
+              },
+            }
+          ).then((resp) => {
+            if (!resp.ok) {
+              throw new Error(resp.statusText);
+            }
+            return resp.json();
+          });
+
+          subscriptionBought = {
+            _id: new mongoose.Types.ObjectId().toString(),
+            subscription_id: subscription_id,
+            plan_id: subscriptionData.plan.id,
+            name: subscriptionData.plan.name,
+            interval: subscriptionData.plan.interval,
+            intervalCount: subscriptionData.plan.interval_count,
+            price: subscriptionData.plan.minimum_price,
+            status: "active",
+            date_bought: new Date(),
+            date_exp: new Date(subscriptionData.next_billing_at),
+          }
+      }
+
+      if(plan_id){
+        const plansController = new  PlansController(client);
+        const {result} = await plansController.getPlan(plan_id);
+
+        const intervalDays = (result.interval === "month") ? 30 : 7;
+        const daysToExp = result.intervalCount * intervalDays;
+        const dateExp = new Date();
+        dateExp.setDate(dateExp.getDate() + daysToExp);
+
+
+        subscriptionBought = {
+          _id: new mongoose.Types.ObjectId().toString(),
+          order_id: order_id,
+          plan_id: result.id,
+          name: result.name,
+          interval: result.interval,
+          intervalCount: result.intervalCount,
+          price: result.items[0].pricingScheme.price,
+          status: "active",
+          date_bought: new Date(),
+          date_exp: dateExp,
+        }
       }
 
       // update user with subscription bought for future marketing strategies
       const UserModel = getModelByTenant(botName+"db", "User", userSchema);
       await UserModel.findOneAndUpdate({telegram_id: customer_chat_id}, {
-        $set: {customer_pgme_id: subscriptionData.customer.id, interest_level: "high"},
+        $set: {interest_level: "high"},
         $push: {subscriptions_bought: subscriptionBought}});
 
       const chatInviteLink = await bot.telegram.createChatInviteLink(
