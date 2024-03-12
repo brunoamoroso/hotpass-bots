@@ -9,6 +9,7 @@ import base64 from "base-64";
 import botConfigSchema from "../schemas/BotConfig.mjs";
 import userSchema from "../schemas/User.mjs";
 import mongoose from "mongoose";
+import priceFormat from "../utils/priceFormat.mjs";
 
 configDotenv();
 
@@ -300,11 +301,8 @@ buySubscription.enter(async (ctx) => {
   }
 });
 
-export const subscriptionBought = async (bot, botName, customer_chat_id, subscription_id, order_id, plan_id) => {
+export const subscriptionBought = async (bot, botName, customer_chat_id, subscription_id, order_id, plan_id, payment_type) => {
     try {
-      const BotConfig = getModelByTenant(botName+"db", "BotConfig", botConfigSchema);
-      const vipChat = await BotConfig.findOne().lean();
-
       const user = process.env.PGMSK;
       const password = "";
 
@@ -326,6 +324,8 @@ export const subscriptionBought = async (bot, botName, customer_chat_id, subscri
             }
             return resp.json();
           });
+
+          console.log(subscriptionData);
 
           subscriptionBought = {
             _id: new mongoose.Types.ObjectId().toString(),
@@ -365,6 +365,9 @@ export const subscriptionBought = async (bot, botName, customer_chat_id, subscri
         }
       }
 
+      const botConfigsModel = getModelByTenant(botName+"db", "BotConfig", botConfigSchema);
+      const botConfigs = await botConfigsModel.findOne().lean();
+
       // update user with subscription bought for future marketing strategies
       const UserModel = getModelByTenant(botName+"db", "User", userSchema);
       await UserModel.findOneAndUpdate({telegram_id: customer_chat_id}, {
@@ -372,8 +375,8 @@ export const subscriptionBought = async (bot, botName, customer_chat_id, subscri
         $push: {subscriptions_bought: subscriptionBought}});
 
       const chatInviteLink = await bot.telegram.createChatInviteLink(
-        vipChat.vip_chat_id,
-        { chat_id: vipChat.vip_chat_id, creates_join_request: true }
+        botConfigs.vip_chat_id,
+        { chat_id: botConfigs.vip_chat_id, creates_join_request: true }
       );
       await bot.telegram.sendMessage(
         customer_chat_id,
@@ -392,6 +395,14 @@ export const subscriptionBought = async (bot, botName, customer_chat_id, subscri
           ]),
         }
       );
+
+      if(!botConfigs.owner_chat_id){
+        throw new Error("Não foi definido o chat_id do dono do bot nos botConfigs");
+      }
+      
+      const formatPaymentType = (payment_type === "pix") ? "💠 Pix" : "💳 Cartão de Crédito";
+      await bot.telegram.sendMessage(botConfigs.owner_chat_id, `🤑 Você tem um novo assinante! ${priceFormat(subscriptionBought.price)} | ${subscriptionBought.name} | ${formatPaymentType}`);
+      
     } catch (err) {
       console.log(err);
     }

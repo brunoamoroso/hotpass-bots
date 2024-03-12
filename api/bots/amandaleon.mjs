@@ -33,7 +33,8 @@ app.post("/api/bots/amandaleon", async (req, res, next) => {
     plan_id,
     pack_id,
     type_item_bought,
-    bot_name
+    bot_name,
+    payment_type
   } = req.body || {};
 
   if (type_item_bought !== undefined && type_item_bought === "subscription") {
@@ -43,14 +44,14 @@ app.post("/api/bots/amandaleon", async (req, res, next) => {
       customer_chat_id,
       subscription_id,
       order_id,
-      plan_id
+      plan_id,
+      payment_type
     );
   }
 
   if (type_item_bought !== undefined && type_item_bought === "pack") {
-    await packs.packBought(bot, bot_name, customer_chat_id, pack_id);
+    await packs.packBought(bot, bot_name, customer_chat_id, pack_id, payment_type);
   }
-
   next();
 });
 
