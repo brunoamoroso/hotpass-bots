@@ -17,15 +17,27 @@ import mongoose from "mongoose";
 const composer = new Composer();
 
 composer.start(async (ctx) => {
+  const role = await auth.authUser(ctx.from, ctx.session.db);
+  console.log(role);
+
   const payload = ctx.payload.split("_");
   if (payload[0] === "buyPacks") {
+    // it lacks the initialState to show only the specific pack to buy
     await ctx.scene.enter("buyPacks");
     return;
   }
 
-  await auth.authUser(ctx.from, ctx.session.db).then((role) => {
-    mainMenu(ctx, role);
-  });
+  if(ctx.payload === "viewPacks"){
+    await ctx.scene.enter("buyPacks");
+    return;
+  }
+
+  if(ctx.payload === "viewSubscriptions"){
+    await ctx.scene.enter("buySubscription");
+    return;
+  }
+
+  await mainMenu(ctx, role);
 });
 
 //Subscriptions
@@ -94,6 +106,11 @@ composer.action("linksCustomer", (ctx) => {
   links.sendCustomerLinks(ctx);
 });
 // End of Link Agreggator
+
+//Message Trigger
+composer.action("msgTrigger", async (ctx) => {
+  await ctx.scene.enter("msgTrigger");
+});
 
 // Create Admin
 composer.action("admins", async (ctx) => {

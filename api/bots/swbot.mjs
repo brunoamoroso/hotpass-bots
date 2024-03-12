@@ -10,6 +10,7 @@ import * as links from "../controllers/linkAgreggatorController.mjs";
 import * as admins from "../controllers/adminsController.mjs";
 import * as subscriptions from "../controllers/subscriptionsController.mjs";
 import * as migration from '../controllers/migrationController.mjs';
+import * as msgTrigger from '../controllers/msgTriggerController.mjs';
 
 configDotenv();
 
@@ -69,6 +70,7 @@ const stage = new Scenes.Stage([
   subscriptions.viewActiveSubscriptionsPlan,
   subscriptions.buySubscription,
   migration.migrate,
+  msgTrigger.msgTrigger,
 ]);
 
 stage.command("cancelar", async (ctx) => {

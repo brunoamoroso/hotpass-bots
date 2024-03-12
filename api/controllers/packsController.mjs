@@ -568,7 +568,7 @@ buyPacks.enter(async (ctx) => {
     const PackModel = getModelByTenant(ctx.session.db, "Pack", packSchema);
     const UserModel = getModelByTenant(ctx.session.db, "User", userSchema);
 
-    if(ctx.payload){
+    if(!ctx.payload === "viewPacks"){
       const payload = ctx.payload.split("_");
       const pack = await PackModel.findOne({status: "enabled", _id: payload[1]}).lean();
       const packBought = await UserModel.findOne({"packs_bought._id": pack._id}).lean();
