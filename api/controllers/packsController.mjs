@@ -3,6 +3,7 @@ import packSchema from "../schemas/Pack.mjs";
 import { getModelByTenant } from "../utils/tenantUtils.mjs";
 import botConfigSchema from "../schemas/BotConfig.mjs";
 import userSchema from "../schemas/User.mjs";
+import priceFormat from "../utils/priceFormat.mjs";
 
 //only for Admins
 export const sendMenu = (ctx) => {
@@ -688,22 +689,30 @@ buyPacks.enter(async (ctx) => {
   }
 });
 
-export const packBought = async (bot, bot_name, customer_chat_id, pack_id) => {
+export const packBought = async (bot, bot_name, customer_chat_id, pack_id, payment_type) => {
   try {
     const PackModel = getModelByTenant(bot_name + "db", "Pack", packSchema);
-    const Pack = await PackModel.findById(pack_id).lean();
-    Pack.date_bought = new Date();
+    const pack = await PackModel.findById(pack_id).lean();
+    pack.date_bought = new Date();
 
     const UserModel = getModelByTenant(bot_name + "db", "User", userSchema);
     await UserModel.findOneAndUpdate(
       { telegram_id: customer_chat_id },
-      { $push: { packs_bought: Pack } }
+      { $push: { packs_bought: pack } }
     );
 
     await bot.telegram.sendMessage(customer_chat_id, "✅ Pagamento confirmado");
-    await bot.telegram.sendMediaGroup(customer_chat_id, Pack.content, {
+    await bot.telegram.sendMediaGroup(customer_chat_id, pack.content, {
       protect_content: true,
     });
+
+    if(!botConfigs.owner_chat_id){
+      throw new Error("Não foi definido o chat_id do dono do bot nos botConfigs");
+    }
+    
+    const formatPaymentType = (payment_type === "pix") ? "💠 Pix" : "💳 Cartão de Crédito";
+    await bot.telegram.sendMessage(botConfigs.owner_chat_id, `🤑 Compraram um pack! ${priceFormat(pack.price)} | ${pack.title} | ${formatPaymentType}`);
+
   } catch (err) {
     console.log(err);
   }
