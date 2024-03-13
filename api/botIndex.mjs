@@ -104,6 +104,14 @@ composer.action("linksCustomer", (ctx) => {
 composer.action("msgTrigger", async (ctx) => {
   await ctx.scene.enter("msgTrigger");
 });
+// End of Message Trigger
+
+//Custom Start
+composer.action("customStart", async (ctx) => {
+  await ctx.scene.enter("customStart");
+})
+//End of Custom Start
+
 
 // Create Admin
 composer.action("admins", async (ctx) => {
