@@ -18,29 +18,24 @@ export default async function mainMenu(ctx, userRole){
         [Markup.button.callback("🦹‍♀️ Admins", "admins")],
       ])
     });
-
-    // return ctx.replyWithPhoto(photo, {
-    //   caption: "Oi amor, achou meu bot é? Vem navegar comigo\\.",
-    //   parse_mode: "MarkdownV2",
-    //   ...Markup.inlineKeyboard([
-    //     [Markup.button.callback("❤️‍🔥 Assinaturas", "subscriptions")],
-    //     [Markup.button.callback("📹 Meus Packs", "packs")],
-    //     [Markup.button.callback("🔗 Agregador de Links", "links")],
-    //     [Markup.button.callback("🦹‍♀️ Admins", "admins")],
-    //     [Markup.button.callback("📢 Divulgação", "linksCustomer")],
-    //     [Markup.button.callback("🏷 Promoção", "linksCustomer")]
-    //   ])
-    //     .oneTime()
-    //     .resize(),
-    // });
   }else{
     const BotConfigsModel = getModelByTenant(ctx.session.db, "BotConfig", botConfigSchema);
     const botConfigs = await BotConfigsModel.findOne().lean();
 
-    if(botConfigs.customStart){
+    if(botConfigs.custom_start){
+      if(botConfigs.custom_start.media.type === "photo"){
+        return ctx.replyWithPhoto(botConfigs.custom_start.media.file, {
+          caption: botConfigs.custom_start.caption,
+          ...Markup.inlineKeyboard([
+            [Markup.button.callback("❤️‍🔥 Assinaturas", "subscriptionsCustomer")],
+            [Markup.button.callback("📹 Packs", "packsCustomer")],
+            [Markup.button.callback("🔗 Links", "linksCustomer")],
+          ])
+        })
+      }
 
-      if(botConfigs.customStart.media.type === "photo"){
-        return ctx.replyWithPhoto(botConfigs.customStart.media.file, {
+      if(botConfigs.custom_start.media.type === "video"){
+        return ctx.replyWithVideo(botConfigs.custom_start.media.file, {
           caption: botConfigs.customStart.caption,
           ...Markup.inlineKeyboard([
             [Markup.button.callback("❤️‍🔥 Assinaturas", "subscriptionsCustomer")],
@@ -50,19 +45,8 @@ export default async function mainMenu(ctx, userRole){
         })
       }
 
-      if(botConfigs.customStart.media.type === "video"){
-        return ctx.replyWithVideo(botConfigs.customStart.media.file, {
-          caption: botConfigs.customStart.caption,
-          ...Markup.inlineKeyboard([
-            [Markup.button.callback("❤️‍🔥 Assinaturas", "subscriptionsCustomer")],
-            [Markup.button.callback("📹 Packs", "packsCustomer")],
-            [Markup.button.callback("🔗 Links", "linksCustomer")],
-          ])
-        })
-      }
-
-      if(botConfigs.customStart.text){
-        return ctx.reply(botConfigs.customStart.text, {
+      if(botConfigs.custom_start.text){
+        return ctx.reply(botConfigs.custom_start.text, {
           ...Markup.inlineKeyboard([
             [Markup.button.callback("❤️‍🔥 Assinaturas", "subscriptionsCustomer")],
             [Markup.button.callback("📹 Packs", "packsCustomer")],
