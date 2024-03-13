@@ -31,7 +31,7 @@ export default async function mainMenu(ctx, userRole){
       if(botConfigs.custom_start.media.type === "photo"){
         return ctx.replyWithPhoto(botConfigs.custom_start.media.file, {
           caption: botConfigs.custom_start.caption,
-          ...Markup.inlineKeyboard(customerKeyboard);
+          ...Markup.inlineKeyboard(customerKeyboard)
         })
       }
 

@@ -4,7 +4,7 @@ import botConfigSchema from "../schemas/BotConfig.mjs";
 export const setVipChat = async (ctx) => {
     try {
         const BotConfig = getModelByTenant(ctx.session.db, "BotConfig", botConfigSchema);
-        await BotConfig.findOneAndUpdate(undefined, {vip_chat_id: ctx.chat.id}, {
+        await BotConfig.findOneAndUpdate({}, {vip_chat_id: ctx.chat.id}, {
             new: true,
             upsert: true,
         });
@@ -17,7 +17,7 @@ export const setVipChat = async (ctx) => {
 export const setPreviewChat = async (ctx) => {
     try{
         const BotConfig = getModelByTenant(ctx.session.db, "BotConfig", botConfigSchema);
-        const preview = await BotConfig.findOneAndUpdate(undefined, {preview_chat_id: ctx.chat.id}, {
+        const preview = await BotConfig.findOneAndUpdate({}, {preview_chat_id: ctx.chat.id}, {
             new: true,
             upsert: true,
         });
