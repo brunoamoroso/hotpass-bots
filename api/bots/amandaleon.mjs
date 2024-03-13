@@ -76,6 +76,7 @@ const stage = new Scenes.Stage([
   subscriptions.viewActiveSubscriptionsPlan,
   subscriptions.buySubscription,
   migration.migrate,
+  msgTrigger.msgTrigger,
 ]);
 
 stage.command("cancelar", async (ctx) => {
