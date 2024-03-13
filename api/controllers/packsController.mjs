@@ -633,6 +633,11 @@ buyPacks.enter(async (ctx) => {
 
     const packs = await PackModel.find({ status: "enabled", _id: {$nin: await UserModel.distinct('packs_bought', { telegram_id: ctx.chat.id })} }).lean();
 
+    if(packs.length === 0){
+      await ctx.reply("😔 Ainda não foi disponibilizado nenhum pack para compra");
+      return;
+    }
+
     for (let i = 0; i < packs.length; i++) {
       const pack = packs[i];
       if (pack.media_preview_type === "photo") {

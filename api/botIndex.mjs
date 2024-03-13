@@ -18,7 +18,6 @@ const composer = new Composer();
 
 composer.start(async (ctx) => {
   const role = await auth.authUser(ctx.from, ctx.session.db);
-  console.log(role);
 
   const payload = ctx.payload.split("_");
   if (payload[0] === "buyPacks") {
