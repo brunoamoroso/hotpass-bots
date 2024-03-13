@@ -301,6 +301,16 @@ buySubscription.enter(async (ctx) => {
   }
 });
 
+/**
+ * 
+ * @param {ctx} bot - should be the context to work with the bot
+ * @param {string} botName
+ * @param {number} customer_chat_id 
+ * @param {string} subscription_id - used when the subscriptions is bought with credit card and has recurrency
+ * @param {string} order_id - used when the subscription is bought by pix and needs to be recognized after in the pagarme
+ * @param {string} plan_id - used when bought by pix to save which plan was bought
+ * @param {string} payment_type - pix or credit_card
+ */
 export const subscriptionBought = async (bot, botName, customer_chat_id, subscription_id, order_id, plan_id, payment_type) => {
     try {
       const user = process.env.PGMSK;
@@ -373,6 +383,10 @@ export const subscriptionBought = async (bot, botName, customer_chat_id, subscri
       await UserModel.findOneAndUpdate({telegram_id: customer_chat_id}, {
         $set: {interest_level: "high"},
         $push: {subscriptions_bought: subscriptionBought}});
+
+      await bot.telegram.unbanChatMember(botConfigs.vip_chat_id, customer_chat_id, {
+        only_if_banned: true,
+      });
 
       const chatInviteLink = await bot.telegram.createChatInviteLink(
         botConfigs.vip_chat_id,
