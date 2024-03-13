@@ -11,6 +11,7 @@ import * as admins from "../controllers/adminsController.mjs";
 import * as subscriptions from "../controllers/subscriptionsController.mjs";
 import * as migration from '../controllers/migrationController.mjs';
 import * as msgTrigger from '../controllers/msgTriggerController.mjs';
+import * as customStart from '../controllers/customStartController.mjs';
 
 configDotenv();
 
@@ -71,6 +72,7 @@ const stage = new Scenes.Stage([
   subscriptions.buySubscription,
   migration.migrate,
   msgTrigger.msgTrigger,
+  customStart.customStartCreator
 ]);
 
 stage.command("cancelar", async (ctx) => {
@@ -95,6 +97,9 @@ bot.use(composer);
 bot.command("sair", async (ctx) => {
   await ctx.scene.leave();
   await ctx.reply("Saindo");
+  ctx.telegram.unbanChatMember({
+    o
+  });
 });
 
 bot.catch((err) => {

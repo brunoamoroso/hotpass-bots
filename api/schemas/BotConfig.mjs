@@ -10,6 +10,12 @@ const botConfigSchema = new Schema(
     },
     split_rules: {
       type: Array,
+    },
+    owner_chat_id: {
+      type: String,
+    },
+    custom_start:{
+      type: Object,
     }
   },
   {
