@@ -19,7 +19,7 @@ msgTrigger.on("message", async (ctx) => {
     if(ctx.message.photo){
         ctx.scene.session.msg.media = {
             type: "photo",
-            media: ctx.message.photo[0].file_id
+            file: ctx.message.photo[0].file_id
         }
 
         ctx.scene.session.msg.caption = ctx.message.caption;
@@ -28,7 +28,7 @@ msgTrigger.on("message", async (ctx) => {
     if(ctx.message.video){
         ctx.scene.session.msg.media = {
             type: "video",
-            media: ctx.message.video.file_id
+            file: ctx.message.video.file_id
         }
 
         ctx.scene.session.msg.caption = ctx.message.caption;
@@ -80,15 +80,33 @@ msgTrigger.action("target_preview", async (ctx) => {
 });
 
 msgTrigger.action("target_vip", async (ctx) => {
-    console.log(ctx);
-    return await ctx.reply("cheguei aui");
+    await ctx.reply("✅ Certo, estou enviado a mensagem somente no grupo de prévias agora mesmo");
+
+    const botConfigsModel = getModelByTenant(
+        ctx.session.db,
+        "BotConfig",
+        botConfigSchema
+      );
+    const botConfigs = await botConfigsModel.findOne().lean();
+
+    await composeAndSendMsg(ctx, botConfigs.vip_chat_id, ctx.scene.session.msg);
+    return ctx.scene.leave();
 });
 
 msgTrigger.action("target_all", async (ctx) => {
-    console.log(ctx);
-    return await ctx.reply("cheguei aui");
+    await ctx.reply("✅ Certo, estou enviado a mensagem somente no grupo de prévias agora mesmo");
+
+    const botConfigsModel = getModelByTenant(
+        ctx.session.db,
+        "BotConfig",
+        botConfigSchema
+      );
+    const botConfigs = await botConfigsModel.findOne().lean();
+
     await composeAndSendMsg(ctx, botConfigs.preview_chat_id, ctx.scene.session.msg);
     await composeAndSendMsg(ctx, botConfigs.vip_chat_id, ctx.scene.session.msg);
+
+    return ctx.scene.leave();
 });
 
 /**
@@ -128,6 +146,80 @@ async function composeAndSendMsg(ctx, chat_id, msgObj){
             
             default:
                 await ctx.telegram.sendMessage(chat_id, msgObj.text)
+                break;
+        }
+    }
+
+    if(msgObj.media.type === "photo"){
+        switch (msgObj.cta) {
+            case "bot":
+                    await ctx.telegram.sendPhoto(chat_id, msgObj.media.file, {
+                        caption: msgObj.caption,
+                        ...Markup.inlineKeyboard([
+                            Markup.button.url("🤖 Acesse o Bot", botURL)
+                        ])
+                    })
+                break;
+            
+            case "packs":
+                await ctx.telegram.sendPhoto(chat_id, msgObj.media.file, {
+                    caption: msgObj.caption,
+                    ...Markup.inlineKeyboard([
+                        Markup.button.url("📹 Veja meus Packs", packsURL)
+                    ])
+                })
+                break;
+
+            case "subscriptions":
+                await ctx.telegram.sendPhoto(chat_id, msgObj.media.file, {
+                    caption: msgObj.caption,
+                    ...Markup.inlineKeyboard([
+                        Markup.button.url("❤️‍🔥 Seja meu Assinante", subscriptionsURL)
+                    ])
+                })
+                break;
+            
+            default:
+                await ctx.telegram.sendPhoto(chat_id, msgObj.media.file, {
+                    caption: msgObj.caption,
+                })
+                break;
+        }
+    }
+
+    if(msgObj.media.type === "video"){
+        switch (msgObj.cta) {
+            case "bot":
+                    await ctx.telegram.sendVideo(chat_id, msgObj.media.file, {
+                        caption: msgObj.caption,
+                        ...Markup.inlineKeyboard([
+                            Markup.button.url("🤖 Acesse o Bot", botURL)
+                        ])
+                    })
+                break;
+            
+            case "packs":
+                await ctx.telegram.sendVideo(chat_id, msgObj.media.file, {
+                    caption: msgObj.caption,
+                    ...Markup.inlineKeyboard([
+                        Markup.button.url("📹 Veja meus Packs", packsURL)
+                    ])
+                })
+                break;
+
+            case "subscriptions":
+                await ctx.telegram.sendVideo(chat_id, msgObj.media.file, {
+                    caption: msgObj.caption,
+                    ...Markup.inlineKeyboard([
+                        Markup.button.url("❤️‍🔥 Seja meu Assinante", subscriptionsURL)
+                    ])
+                })
+                break;
+            
+            default:
+                await ctx.telegram.sendVideo(chat_id, msgObj.media.file, {
+                    caption: msgObj.caption,
+                })
                 break;
         }
     }
