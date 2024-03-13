@@ -11,6 +11,7 @@ export default function mainMenu(ctx, userRole){
         [Markup.button.callback("❤️‍🔥 Assinaturas", "subscriptions")],
         [Markup.button.callback("📹 Meus Packs", "packs")],
         [Markup.button.callback("🔗 Agregador de Links", "links")],
+        [Markup.button.callback("📢 Disparo de Mensagens", "msgTrigger")],
         [Markup.button.callback("🦹‍♀️ Admins", "admins")],
       ])
     });
