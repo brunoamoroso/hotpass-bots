@@ -94,12 +94,6 @@ composer.action("viewLinks", (ctx) => {
   ctx.scene.enter("viewLinks");
 });
 
-// // links.viewLinks.leave((ctx) => {
-// //   setTimeout(() => {
-// //     mainMenu(ctx);
-// //   }, 2000);
-// // });
-
 // Customer
 composer.action("linksCustomer", (ctx) => {
   links.sendCustomerLinks(ctx);
