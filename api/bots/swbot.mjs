@@ -31,6 +31,9 @@ app.post("/api/bots/swbot", async (req, res, next) => {
     payment_type
   } = req.body || {};
 
+
+  console.log(req.body)
+
   if (type_item_bought !== undefined && type_item_bought === "subscription") {
     await subscriptions.subscriptionBought(
       bot,
