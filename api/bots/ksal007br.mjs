@@ -1,6 +1,6 @@
 import express from "express";
-import { configDotenv } from "dotenv";
-import { Telegraf, Scenes, session, Markup } from "telegraf";
+import { config as configDotenv } from "dotenv";
+import { Telegraf, Scenes, session } from "telegraf";
 import { Mongo } from "@telegraf/session/mongodb";
 import composer from "../botIndex.mjs";
 
@@ -17,9 +17,9 @@ configDotenv();
 
 const app = express();
 
-const bot = new Telegraf(process.env.SWBOTTOKEN);
+const bot = new Telegraf(process.env.KSAL007BR_TOKEN);
 
-app.post("/api/bots/swbot", async (req, res, next) => {
+app.post("/api/bots/ksal007br", async (req, res, next) => {
   const {
     customer_chat_id,
     subscription_id,
@@ -54,7 +54,7 @@ app.post("/api/bots/swbot", async (req, res, next) => {
 app.use(
   await bot.createWebhook({
     domain: process.env.WEBHOOK_DOMAIN,
-    path: "/api/bots/swbot",
+    path: "/api/bots/ksal007br",
   })
 );
 
@@ -81,15 +81,15 @@ stage.command("cancelar", async (ctx) => {
 
 const store = Mongo({
   url: process.env.MONGODB_URI,
-  database: "swbotdb",
+  database: "ksal007brdb",
 });
 
 bot.use(session({ store }));
 bot.use(stage.middleware());
 bot.use(async (ctx, next) => {
-  ctx.session.db = "swbotdb";
-  ctx.session.botName = "swbot";
-  ctx.session.tgBotLink = "VercelTestebot";
+  ctx.session.db = "ksal007brdb";
+  ctx.session.botName = "ksal007br";
+  ctx.session.tgBotLink = "Ksal007br_bot";
   return next();
 });
 bot.use(composer);
