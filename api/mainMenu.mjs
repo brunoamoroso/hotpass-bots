@@ -24,27 +24,30 @@ export default async function mainMenu(ctx, userRole){
       [Markup.button.callback("🔗 Links", "linksCustomer")],
     ];
 
-    if(botConfigs.custom_start){
-      if(botConfigs.custom_start.media.type === "photo"){
-        return ctx.replyWithPhoto(botConfigs.custom_start.media.file, {
-          caption: botConfigs.custom_start.caption,
-          ...Markup.inlineKeyboard(customerKeyboard)
-        })
-      }
 
-      if(botConfigs.custom_start.media.type === "video"){
-        return ctx.replyWithVideo(botConfigs.custom_start.media.file, {
-          caption: botConfigs.customStart.caption,
-          ...Markup.inlineKeyboard(customerKeyboard)
-        })
+    if(botConfigs){
+      if(botConfigs.custom_start){
+        if(botConfigs.custom_start.media.type === "photo"){
+          return ctx.replyWithPhoto(botConfigs.custom_start.media.file, {
+            caption: botConfigs.custom_start.caption,
+            ...Markup.inlineKeyboard(customerKeyboard)
+          })
+        }
+  
+        if(botConfigs.custom_start.media.type === "video"){
+          return ctx.replyWithVideo(botConfigs.custom_start.media.file, {
+            caption: botConfigs.customStart.caption,
+            ...Markup.inlineKeyboard(customerKeyboard)
+          })
+        }
+  
+        if(botConfigs.custom_start.text){
+          return ctx.reply(botConfigs.custom_start.text, {
+            ...Markup.inlineKeyboard(customerKeyboard)
+          });
+        }
+  
       }
-
-      if(botConfigs.custom_start.text){
-        return ctx.reply(botConfigs.custom_start.text, {
-          ...Markup.inlineKeyboard(customerKeyboard)
-        });
-      }
-
     }
 
     return ctx.reply(`Bem-vindo ao meu menu ${ctx.from.first_name}, o que você quer hoje? 😈`, {

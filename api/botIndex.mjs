@@ -11,8 +11,6 @@ import * as groupChat from "./controllers/groupChatController.mjs";
 import mainMenu from "./mainMenu.mjs";
 import { getModelByTenant } from "./utils/tenantUtils.mjs";
 import userSchema from "./schemas/User.mjs";
-import botConfigSchema from "./schemas/BotConfig.mjs";
-import mongoose from "mongoose";
 
 const composer = new Composer();
 
