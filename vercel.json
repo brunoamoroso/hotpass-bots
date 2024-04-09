@@ -23,7 +23,7 @@
   "crons": [
     {
       "path": "/api/cron/checkSubscriptions.mjs",
-      "schedule": "59 23 * * *"
+      "schedule": "00 03 * * *"
     }
   ]
 }
