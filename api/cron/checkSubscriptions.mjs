@@ -94,11 +94,12 @@ export default async function checkSubscriptions() {
         };
   
         await UserModel.updateMany(query, updateQuery);
-
       }catch(err){
         console.log(err);
       }
     });
+    console.log('Cron Job Finished');
+    return;
 }
 
 function renewedSubscription(users) {
