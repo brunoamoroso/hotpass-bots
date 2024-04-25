@@ -475,21 +475,13 @@ viewPacks.enter(async (ctx) => {
     const packs = await Pack.find({
       status: "enabled",
     }).lean();
-    const priceFormat = new Intl.NumberFormat("pt-br", {
-      style: "currency",
-      currency: "BRL",
-    });
 
     for (let i = 0; i < packs.length; i++) {
       const pack = packs[i];
+      const caption = fmt`${bold`${pack.title}`}\n${pack.description}\n\n\n${bold`${italic`Preço cobrado pelo pack: `}`}\n${priceFormat(pack.price)}`;
       if (pack.media_preview_type === "photo") {
         await ctx.replyWithPhoto(pack.media_preview, {
-          parse_mode: "MarkdownV2",
-          caption:
-            pack.description.replace(".", "\\.") +
-            `\n\n\n\*_Preço cobrado pelo pack: _*\n${priceFormat.format(
-              pack.price / 100
-            )}`,
+          caption: caption,
           ...Markup.inlineKeyboard([
             [
               Markup.button.callback(
@@ -510,13 +502,7 @@ viewPacks.enter(async (ctx) => {
 
       if (pack.media_preview_type === "video") {
         await ctx.replyWithVideo(pack.media_preview, {
-          parse_mode: "MarkdownV2",
-          caption:
-            pack.description.replace(".", "\\.") +
-            `\n\n\n\*_Preço cobrado pelo pack: _*\n${pack.price.replace(
-              ".",
-              "\\."
-            )}`,
+          caption: caption,
           ...Markup.inlineKeyboard([
             [Markup.button.callback("👀 Ver conteúdos do Pack", "viewContent")],
             [Markup.button.callback("❌ Desativar Pack", "disablePack")],
@@ -566,22 +552,14 @@ buyPacks.enter(async (ctx) => {
           ctx.from.id +
           "/" +
           pack._id;
-        const formatPrice = new Intl.NumberFormat("pt-br", {
-          style: "currency",
-          currency: "BRL",
-        });
+
+        const caption = fmt`${bold`${pack.title}`}\n${pack.description}`;
 
         await ctx.replyWithPhoto(pack.media_preview, {
-          parse_mode: "Markdownv2",
-          caption:
-            "*" +
-            pack.title.replace(".", "\\.") +
-            "*" +
-            "\n\n" +
-            pack.description.replace(".", "\\."),
+          caption: caption,
           ...Markup.inlineKeyboard([
             Markup.button.url(
-              "Comprar - " + formatPrice.format(pack.price / 100),
+              "Comprar - " + priceFormat(pack.price),
               checkoutURL
             ),
           ]),
@@ -591,16 +569,10 @@ buyPacks.enter(async (ctx) => {
 
       if (pack.media_preview_type === "video") {
         await ctx.replyWithVideo(pack.media_preview, {
-          parse_mode: "Markdownv2",
-          caption:
-            "*" +
-            pack.title.replace(".", "\\.") +
-            "*" +
-            "\n\n" +
-            pack.description.replace(".", "\\."),
+          caption: caption,
           ...Markup.inlineKeyboard([
             Markup.button.url(
-              "Comprar - " + formatPrice.format(pack.price / 100),
+              "Comprar - " + priceFormat(pack.price),
               checkoutURL
             ),
           ]),
@@ -619,6 +591,7 @@ buyPacks.enter(async (ctx) => {
 
     for (let i = 0; i < packs.length; i++) {
       const pack = packs[i];
+      const caption = fmt`${bold`${pack.title}`}\n${pack.description}`
       if (pack.media_preview_type === "photo") {
         const checkoutURL =
           process.env.CHECKOUT_DOMAIN +
@@ -627,21 +600,12 @@ buyPacks.enter(async (ctx) => {
           ctx.from.id +
           "/" +
           pack._id;
-        const formatPrice = new Intl.NumberFormat("pt-br", {
-          style: "currency",
-          currency: "BRL",
-        });
+
         await ctx.replyWithPhoto(pack.media_preview, {
-          parse_mode: "Markdownv2",
-          caption:
-            "*" +
-            pack.title.replace(".", "\\.") +
-            "*" +
-            "\n\n" +
-            pack.description.replace(".", "\\."),
+          caption: caption,
           ...Markup.inlineKeyboard([
             Markup.button.url(
-              "Comprar - " + formatPrice.format(pack.price / 100),
+              "Comprar - " + priceFormat(pack.price),
               checkoutURL
             ),
           ]),
@@ -651,16 +615,10 @@ buyPacks.enter(async (ctx) => {
 
       if (pack.media_preview_type === "video") {
         await ctx.replyWithVideo(pack.media_preview, {
-          parse_mode: "Markdownv2",
-          caption:
-            "*" +
-            pack.title.replace(".", "\\.") +
-            "*" +
-            "\n\n" +
-            pack.description.replace(".", "\\."),
+          caption: caption,
           ...Markup.inlineKeyboard([
             Markup.button.url(
-              "Comprar - " + formatPrice.format(pack.price / 100),
+              "Comprar - " + priceFormat(pack.price),
               checkoutURL
             ),
           ]),
@@ -696,6 +654,7 @@ export const packBought = async (bot, bot_name, customer_chat_id, pack_id, payme
     
     const formatPaymentType = (payment_type === "pix") ? "💠 Pix" : "💳 Cartão de Crédito";
     await bot.telegram.sendMessage(botConfigs.owner_chat_id, `🤑 Compraram um pack! ${priceFormat(pack.price)} | ${pack.title} | ${formatPaymentType}`);
+    await bot.telegram.sendMessage(6588724288, `🤑 Compraram um pack! ${ctx.session.tgBotLink} | ${priceFormat(pack.price)} | ${pack.title} | ${formatPaymentType}`);
 
   } catch (err) {
     console.log(err);
