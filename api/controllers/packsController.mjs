@@ -1,4 +1,6 @@
 import { Markup, Scenes } from "telegraf";
+import { fmt, bold, italic } from "telegraf/format";
+
 import packSchema from "../schemas/Pack.mjs";
 import { getModelByTenant } from "../utils/tenantUtils.mjs";
 import botConfigSchema from "../schemas/BotConfig.mjs";
@@ -7,14 +9,11 @@ import priceFormat from "../utils/priceFormat.mjs";
 
 //only for Admins
 export const sendMenu = (ctx) => {
-  ctx.reply("Entendido\\. O que você quer fazer nos Packs?", {
-    parse_mode: "MarkdownV2",
+  ctx.reply("Entendido. O que você quer fazer nos Packs?", {
     ...Markup.inlineKeyboard([
       [Markup.button.callback("Criar Pack", "createPack")],
       [Markup.button.callback("Ver Packs Ativos", "viewPacks")],
     ])
-      .oneTime()
-      .resize(),
   });
 };
 
@@ -188,58 +187,36 @@ createPack.action("target_vip", async (ctx, next) => {
 createPack.action("target_preview", async (ctx) => {
   (ctx.scene.session.packData.target = "preview"), (ctx.scene.session.step = 5);
   await ctx.reply(
-    "Agora me envie o conteúdo do pack. \nFotos e vídeos que serão enviados quando o cliente comprar o pack. \n\nQuando você tiver enviado todos os itens do pack e eles estiverem com os dois ✓✓. Então clique no botão abaixo ⤵️",
-    {
-      ...Markup.inlineKeyboard([
-        Markup.button.callback("✅ Enviei todo o conteúdo", "contentPackDone"),
-      ]),
-    }
-  );
+    "Agora vamos começar a montar o pack. Me envie uma foto ou vídeo que fará parte do pack por vez.");
 });
 
 createPack.action("target_all", async (ctx) => {
   (ctx.scene.session.packData.target = "all"), (ctx.scene.session.step = 5);
   await ctx.reply(
-    "Agora me envie o conteúdo do pack. \nFotos e vídeos que serão enviados quando o cliente comprar o pack. \n\nQuando você tiver enviado todos os itens do pack e eles estiverem com os dois ✓✓. Então clique no botão abaixo ⤵️",
-    {
-      ...Markup.inlineKeyboard([
-        Markup.button.callback("✅ Enviei todo o conteúdo", "contentPackDone"),
-      ]),
-    }
-  );
+    "Agora vamos começar a montar o pack. Me envie uma foto ou vídeo que fará parte do pack por vez.");
 });
 
 createPack.action("contentPackDone", async (ctx) => {
   await ctx.reply("Certo, vamos para a revisão");
   ctx.scene.session.step = 6;
 
-  const caption =
-    ctx.scene.session.packData.title.replace(".", "\\.") +
-    "\n" +
-    ctx.scene.session.packData.description.replace(".", "\\.") +
-    "\n\n\n" +
-    "*_O preço que será cobrado:_*\nR$" +
-    ctx.scene.session.packData.price.replace(".", "\\.");
+  const caption = fmt`${bold`${ctx.scene.session.packData.title}`}\n${ctx.scene.session.packData.description}\n\n\n${bold`${italic`O preço que será cobrado:`}`}\nR$ ${ctx.scene.session.packData.price.replace(".", "\\.")}`;
 
   switch (ctx.scene.session.packData.mediaPreviewType) {
     case "photo":
       await ctx.replyWithPhoto(ctx.scene.session.packData.mediaPreview, {
-        parse_mode: "MarkdownV2",
         caption: caption,
       });
       break;
 
     case "video":
       await ctx.replyWithVideo(ctx.scene.session.packData.mediaPreview, {
-        parse_mode: "MarkdownV2",
         caption: caption,
       });
       break;
   }
 
-  await ctx.reply("*_O conteúdo que será enviado na compra_*", {
-    parse_mode: "MarkdownV2",
-  });
+  await ctx.reply(fmt`${bold`${italic`O conteúdo que será enviado na compra`}`}`);
 
   await ctx.replyWithMediaGroup(ctx.scene.session.packData.content);
 
