@@ -271,6 +271,8 @@ createPack.action("save", async (ctx) => {
     // Temporary while we don't broadcast to users
     const checkoutURL = `https://t.me/${ctx.session.tgBotLink}?start=buyPacks_${packResult._id}`;
 
+    const caption = fmt`${bold`${packData.title}`}\n\n${packData.description}`;
+
     switch (packData.target) {
       case "all":
         switch (packData.mediaPreviewType) {
@@ -279,7 +281,7 @@ createPack.action("save", async (ctx) => {
               botConfigs.vip_chat_id,
               packData.mediaPreview,
               {
-                caption: packData.title + "\n\n" + packData.description,
+                caption: caption,
                 protect_content: true,
                 ...Markup.inlineKeyboard([
                   [
@@ -297,7 +299,7 @@ createPack.action("save", async (ctx) => {
               botConfigs.preview_chat_id,
               packData.mediaPreview,
               {
-                caption: packData.title + "\n\n" + packData.description,
+                caption: caption,
                 protect_content: true,
                 ...Markup.inlineKeyboard([
                   [
@@ -318,7 +320,7 @@ createPack.action("save", async (ctx) => {
               botConfigs.vip_chat_id,
               packData.mediaPreview,
               {
-                caption: packData.title + "\n\n" + packData.description,
+                caption: caption,
                 protect_content: true,
                 ...Markup.inlineKeyboard([
                   [
@@ -336,7 +338,7 @@ createPack.action("save", async (ctx) => {
               botConfigs.preview_chat_id,
               packData.mediaPreview,
               {
-                caption: packData.title + "\n\n" + packData.description,
+                caption: caption,
                 protect_content: true,
                 ...Markup.inlineKeyboard([
                   [
@@ -361,7 +363,7 @@ createPack.action("save", async (ctx) => {
               botConfigs.vip_chat_id,
               packData.mediaPreview,
               {
-                caption: packData.title + "\n\n" + packData.description,
+                caption: caption,
                 protect_content: true,
                 ...Markup.inlineKeyboard([
                   [
@@ -382,7 +384,7 @@ createPack.action("save", async (ctx) => {
               botConfigs.vip_chat_id,
               packData.mediaPreview,
               {
-                caption: packData.title + "\n\n" + packData.description,
+                caption: caption,
                 protect_content: true,
                 ...Markup.inlineKeyboard([
                   [
@@ -407,7 +409,7 @@ createPack.action("save", async (ctx) => {
               botConfigs.preview_chat_id,
               packData.mediaPreview,
               {
-                caption: packData.title + "\n\n" + packData.description,
+                caption: caption,
                 protect_content: true,
                 ...Markup.inlineKeyboard([
                   [
@@ -428,7 +430,7 @@ createPack.action("save", async (ctx) => {
               botConfigs.preview_chat_id,
               packData.mediaPreview,
               {
-                caption: packData.title + "\n\n" + packData.description,
+                caption: caption,
                 protect_content: true,
                 ...Markup.inlineKeyboard([
                   [
