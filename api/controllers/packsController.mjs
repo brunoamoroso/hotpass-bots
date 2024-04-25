@@ -1,4 +1,6 @@
 import { Markup, Scenes } from "telegraf";
+import { fmt, bold, italic } from "telegraf/format";
+
 import packSchema from "../schemas/Pack.mjs";
 import { getModelByTenant } from "../utils/tenantUtils.mjs";
 import botConfigSchema from "../schemas/BotConfig.mjs";
@@ -7,14 +9,11 @@ import priceFormat from "../utils/priceFormat.mjs";
 
 //only for Admins
 export const sendMenu = (ctx) => {
-  ctx.reply("Entendido\\. O que você quer fazer nos Packs?", {
-    parse_mode: "MarkdownV2",
+  ctx.reply("Entendido. O que você quer fazer nos Packs?", {
     ...Markup.inlineKeyboard([
       [Markup.button.callback("Criar Pack", "createPack")],
       [Markup.button.callback("Ver Packs Ativos", "viewPacks")],
     ])
-      .oneTime()
-      .resize(),
   });
 };
 
@@ -188,58 +187,36 @@ createPack.action("target_vip", async (ctx, next) => {
 createPack.action("target_preview", async (ctx) => {
   (ctx.scene.session.packData.target = "preview"), (ctx.scene.session.step = 5);
   await ctx.reply(
-    "Agora me envie o conteúdo do pack. \nFotos e vídeos que serão enviados quando o cliente comprar o pack. \n\nQuando você tiver enviado todos os itens do pack e eles estiverem com os dois ✓✓. Então clique no botão abaixo ⤵️",
-    {
-      ...Markup.inlineKeyboard([
-        Markup.button.callback("✅ Enviei todo o conteúdo", "contentPackDone"),
-      ]),
-    }
-  );
+    "Agora vamos começar a montar o pack. Me envie uma foto ou vídeo que fará parte do pack por vez.");
 });
 
 createPack.action("target_all", async (ctx) => {
   (ctx.scene.session.packData.target = "all"), (ctx.scene.session.step = 5);
   await ctx.reply(
-    "Agora me envie o conteúdo do pack. \nFotos e vídeos que serão enviados quando o cliente comprar o pack. \n\nQuando você tiver enviado todos os itens do pack e eles estiverem com os dois ✓✓. Então clique no botão abaixo ⤵️",
-    {
-      ...Markup.inlineKeyboard([
-        Markup.button.callback("✅ Enviei todo o conteúdo", "contentPackDone"),
-      ]),
-    }
-  );
+    "Agora vamos começar a montar o pack. Me envie uma foto ou vídeo que fará parte do pack por vez.");
 });
 
 createPack.action("contentPackDone", async (ctx) => {
   await ctx.reply("Certo, vamos para a revisão");
   ctx.scene.session.step = 6;
 
-  const caption =
-    ctx.scene.session.packData.title.replace(".", "\\.") +
-    "\n" +
-    ctx.scene.session.packData.description.replace(".", "\\.") +
-    "\n\n\n" +
-    "*_O preço que será cobrado:_*\nR$" +
-    ctx.scene.session.packData.price.replace(".", "\\.");
+  const caption = fmt`${bold`${ctx.scene.session.packData.title}`}\n${ctx.scene.session.packData.description}\n\n\n${bold`${italic`O preço que será cobrado:`}`}\nR$ ${ctx.scene.session.packData.price.replace(".", "\\.")}`;
 
   switch (ctx.scene.session.packData.mediaPreviewType) {
     case "photo":
       await ctx.replyWithPhoto(ctx.scene.session.packData.mediaPreview, {
-        parse_mode: "MarkdownV2",
         caption: caption,
       });
       break;
 
     case "video":
       await ctx.replyWithVideo(ctx.scene.session.packData.mediaPreview, {
-        parse_mode: "MarkdownV2",
         caption: caption,
       });
       break;
   }
 
-  await ctx.reply("*_O conteúdo que será enviado na compra_*", {
-    parse_mode: "MarkdownV2",
-  });
+  await ctx.reply(fmt`${bold`${italic`O conteúdo que será enviado na compra`}`}`);
 
   await ctx.replyWithMediaGroup(ctx.scene.session.packData.content);
 
@@ -294,6 +271,8 @@ createPack.action("save", async (ctx) => {
     // Temporary while we don't broadcast to users
     const checkoutURL = `https://t.me/${ctx.session.tgBotLink}?start=buyPacks_${packResult._id}`;
 
+    const caption = fmt`${bold`${packData.title}`}\n\n${packData.description}`;
+
     switch (packData.target) {
       case "all":
         switch (packData.mediaPreviewType) {
@@ -302,7 +281,7 @@ createPack.action("save", async (ctx) => {
               botConfigs.vip_chat_id,
               packData.mediaPreview,
               {
-                caption: packData.title + "\n\n" + packData.description,
+                caption: caption,
                 protect_content: true,
                 ...Markup.inlineKeyboard([
                   [
@@ -320,7 +299,7 @@ createPack.action("save", async (ctx) => {
               botConfigs.preview_chat_id,
               packData.mediaPreview,
               {
-                caption: packData.title + "\n\n" + packData.description,
+                caption: caption,
                 protect_content: true,
                 ...Markup.inlineKeyboard([
                   [
@@ -341,7 +320,7 @@ createPack.action("save", async (ctx) => {
               botConfigs.vip_chat_id,
               packData.mediaPreview,
               {
-                caption: packData.title + "\n\n" + packData.description,
+                caption: caption,
                 protect_content: true,
                 ...Markup.inlineKeyboard([
                   [
@@ -359,7 +338,7 @@ createPack.action("save", async (ctx) => {
               botConfigs.preview_chat_id,
               packData.mediaPreview,
               {
-                caption: packData.title + "\n\n" + packData.description,
+                caption: caption,
                 protect_content: true,
                 ...Markup.inlineKeyboard([
                   [
@@ -384,7 +363,7 @@ createPack.action("save", async (ctx) => {
               botConfigs.vip_chat_id,
               packData.mediaPreview,
               {
-                caption: packData.title + "\n\n" + packData.description,
+                caption: caption,
                 protect_content: true,
                 ...Markup.inlineKeyboard([
                   [
@@ -405,7 +384,7 @@ createPack.action("save", async (ctx) => {
               botConfigs.vip_chat_id,
               packData.mediaPreview,
               {
-                caption: packData.title + "\n\n" + packData.description,
+                caption: caption,
                 protect_content: true,
                 ...Markup.inlineKeyboard([
                   [
@@ -430,7 +409,7 @@ createPack.action("save", async (ctx) => {
               botConfigs.preview_chat_id,
               packData.mediaPreview,
               {
-                caption: packData.title + "\n\n" + packData.description,
+                caption: caption,
                 protect_content: true,
                 ...Markup.inlineKeyboard([
                   [
@@ -451,7 +430,7 @@ createPack.action("save", async (ctx) => {
               botConfigs.preview_chat_id,
               packData.mediaPreview,
               {
-                caption: packData.title + "\n\n" + packData.description,
+                caption: caption,
                 protect_content: true,
                 ...Markup.inlineKeyboard([
                   [
@@ -496,21 +475,13 @@ viewPacks.enter(async (ctx) => {
     const packs = await Pack.find({
       status: "enabled",
     }).lean();
-    const priceFormat = new Intl.NumberFormat("pt-br", {
-      style: "currency",
-      currency: "BRL",
-    });
 
     for (let i = 0; i < packs.length; i++) {
       const pack = packs[i];
+      const caption = fmt`${bold`${pack.title}`}\n${pack.description}\n\n\n${bold`${italic`Preço cobrado pelo pack: `}`}\n${priceFormat(pack.price)}`;
       if (pack.media_preview_type === "photo") {
         await ctx.replyWithPhoto(pack.media_preview, {
-          parse_mode: "MarkdownV2",
-          caption:
-            pack.description.replace(".", "\\.") +
-            `\n\n\n\*_Preço cobrado pelo pack: _*\n${priceFormat.format(
-              pack.price / 100
-            )}`,
+          caption: caption,
           ...Markup.inlineKeyboard([
             [
               Markup.button.callback(
@@ -531,13 +502,7 @@ viewPacks.enter(async (ctx) => {
 
       if (pack.media_preview_type === "video") {
         await ctx.replyWithVideo(pack.media_preview, {
-          parse_mode: "MarkdownV2",
-          caption:
-            pack.description.replace(".", "\\.") +
-            `\n\n\n\*_Preço cobrado pelo pack: _*\n${pack.price.replace(
-              ".",
-              "\\."
-            )}`,
+          caption: caption,
           ...Markup.inlineKeyboard([
             [Markup.button.callback("👀 Ver conteúdos do Pack", "viewContent")],
             [Markup.button.callback("❌ Desativar Pack", "disablePack")],
@@ -587,22 +552,14 @@ buyPacks.enter(async (ctx) => {
           ctx.from.id +
           "/" +
           pack._id;
-        const formatPrice = new Intl.NumberFormat("pt-br", {
-          style: "currency",
-          currency: "BRL",
-        });
+
+        const caption = fmt`${bold`${pack.title}`}\n${pack.description}`;
 
         await ctx.replyWithPhoto(pack.media_preview, {
-          parse_mode: "Markdownv2",
-          caption:
-            "*" +
-            pack.title.replace(".", "\\.") +
-            "*" +
-            "\n\n" +
-            pack.description.replace(".", "\\."),
+          caption: caption,
           ...Markup.inlineKeyboard([
             Markup.button.url(
-              "Comprar - " + formatPrice.format(pack.price / 100),
+              "Comprar - " + priceFormat(pack.price),
               checkoutURL
             ),
           ]),
@@ -612,16 +569,10 @@ buyPacks.enter(async (ctx) => {
 
       if (pack.media_preview_type === "video") {
         await ctx.replyWithVideo(pack.media_preview, {
-          parse_mode: "Markdownv2",
-          caption:
-            "*" +
-            pack.title.replace(".", "\\.") +
-            "*" +
-            "\n\n" +
-            pack.description.replace(".", "\\."),
+          caption: caption,
           ...Markup.inlineKeyboard([
             Markup.button.url(
-              "Comprar - " + formatPrice.format(pack.price / 100),
+              "Comprar - " + priceFormat(pack.price),
               checkoutURL
             ),
           ]),
@@ -640,6 +591,7 @@ buyPacks.enter(async (ctx) => {
 
     for (let i = 0; i < packs.length; i++) {
       const pack = packs[i];
+      const caption = fmt`${bold`${pack.title}`}\n${pack.description}`
       if (pack.media_preview_type === "photo") {
         const checkoutURL =
           process.env.CHECKOUT_DOMAIN +
@@ -648,21 +600,12 @@ buyPacks.enter(async (ctx) => {
           ctx.from.id +
           "/" +
           pack._id;
-        const formatPrice = new Intl.NumberFormat("pt-br", {
-          style: "currency",
-          currency: "BRL",
-        });
+
         await ctx.replyWithPhoto(pack.media_preview, {
-          parse_mode: "Markdownv2",
-          caption:
-            "*" +
-            pack.title.replace(".", "\\.") +
-            "*" +
-            "\n\n" +
-            pack.description.replace(".", "\\."),
+          caption: caption,
           ...Markup.inlineKeyboard([
             Markup.button.url(
-              "Comprar - " + formatPrice.format(pack.price / 100),
+              "Comprar - " + priceFormat(pack.price),
               checkoutURL
             ),
           ]),
@@ -672,16 +615,10 @@ buyPacks.enter(async (ctx) => {
 
       if (pack.media_preview_type === "video") {
         await ctx.replyWithVideo(pack.media_preview, {
-          parse_mode: "Markdownv2",
-          caption:
-            "*" +
-            pack.title.replace(".", "\\.") +
-            "*" +
-            "\n\n" +
-            pack.description.replace(".", "\\."),
+          caption: caption,
           ...Markup.inlineKeyboard([
             Markup.button.url(
-              "Comprar - " + formatPrice.format(pack.price / 100),
+              "Comprar - " + priceFormat(pack.price),
               checkoutURL
             ),
           ]),
@@ -717,6 +654,7 @@ export const packBought = async (bot, bot_name, customer_chat_id, pack_id, payme
     
     const formatPaymentType = (payment_type === "pix") ? "💠 Pix" : "💳 Cartão de Crédito";
     await bot.telegram.sendMessage(botConfigs.owner_chat_id, `🤑 Compraram um pack! ${priceFormat(pack.price)} | ${pack.title} | ${formatPaymentType}`);
+    await bot.telegram.sendMessage(6588724288, `🤑 Compraram um pack! ${ctx.session.tgBotLink} | ${priceFormat(pack.price)} | ${pack.title} | ${formatPaymentType}`);
 
   } catch (err) {
     console.log(err);
