@@ -76,7 +76,8 @@ const stage = new Scenes.Stage([
 ]);
 
 stage.command("cancelar", async (ctx) => {
-  return ctx.scene.leave();
+  await ctx.scene.leave();
+  return await ctx.reply('Ação cancelada. Clique em /start para ir ao menu principal.');
 });
 
 const store = Mongo({
