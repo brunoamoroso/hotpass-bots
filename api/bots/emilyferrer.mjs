@@ -1,6 +1,6 @@
 import express from "express";
-import { config as configDotenv } from "dotenv";
-import { Telegraf, Scenes, session } from "telegraf";
+import { configDotenv } from "dotenv";
+import { Telegraf, Scenes, session, Markup } from "telegraf";
 import { Mongo } from "@telegraf/session/mongodb";
 import composer from "../botIndex.mjs";
 
@@ -11,15 +11,22 @@ import * as admins from "../controllers/adminsController.mjs";
 import * as subscriptions from "../controllers/subscriptionsController.mjs";
 import * as migration from '../controllers/migrationController.mjs';
 import * as msgTrigger from '../controllers/msgTriggerController.mjs';
-import * as customStart from '../controllers/customStartController.mjs';
 
 configDotenv();
 
 const app = express();
 
-const bot = new Telegraf(process.env.KSAL007BR_TOKEN);
+app.use(
+  express.urlencoded({
+    extended: true,
+  })
+);
 
-app.post("/api/bots/ksal007br", async (req, res, next) => {
+app.use(express.json());
+
+const bot = new Telegraf(process.env.EMILYFERRER_TOKEN);
+
+app.post("/api/bots/emilyferrer", async (req, res, next) => {
   const {
     customer_chat_id,
     subscription_id,
@@ -46,7 +53,6 @@ app.post("/api/bots/ksal007br", async (req, res, next) => {
   if (type_item_bought !== undefined && type_item_bought === "pack") {
     await packs.packBought(bot, bot_name, customer_chat_id, pack_id, payment_type);
   }
-
   next();
 });
 
@@ -54,7 +60,7 @@ app.post("/api/bots/ksal007br", async (req, res, next) => {
 app.use(
   await bot.createWebhook({
     domain: process.env.WEBHOOK_DOMAIN,
-    path: "/api/bots/ksal007br",
+    path: "/api/bots/emilyferrer",
   })
 );
 
@@ -72,7 +78,6 @@ const stage = new Scenes.Stage([
   subscriptions.buySubscription,
   migration.migrate,
   msgTrigger.msgTrigger,
-  customStart.customStartCreator
 ]);
 
 stage.command("cancelar", async (ctx) => {
@@ -82,20 +87,21 @@ stage.command("cancelar", async (ctx) => {
 
 const store = Mongo({
   url: process.env.MONGODB_URI,
-  database: "ksal007brdb",
+  database: "emilyferrerdb",
 });
 
 bot.use(session({ store }));
 bot.use(stage.middleware());
 bot.use(async (ctx, next) => {
-  ctx.session.db = "ksal007brdb";
-  ctx.session.botName = "ksal007br";
-  ctx.session.tgBotLink = "Ksal007br_bot";
+  ctx.session.db = "emilyferrerdb";
+  ctx.session.botName = "emilyferrer";
+  ctx.session.tgBotLink = "EmilyFerrerBot";
   return next();
 });
+
 bot.use(composer);
 
-bot.command("sair", async (ctx) => {
+bot.command("/sair", async (ctx) => {
   await ctx.scene.leave();
   await ctx.reply("Saindo");
 });
