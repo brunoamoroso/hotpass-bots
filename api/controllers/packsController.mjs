@@ -591,16 +591,17 @@ buyPacks.enter(async (ctx) => {
 
     for (let i = 0; i < packs.length; i++) {
       const pack = packs[i];
-      const caption = fmt`${bold`${pack.title}`}\n${pack.description}`
-      if (pack.media_preview_type === "photo") {
-        const checkoutURL =
-          process.env.CHECKOUT_DOMAIN +
-          ctx.session.botName +
-          "/" +
-          ctx.from.id +
-          "/" +
-          pack._id;
+      const caption = fmt`${bold`${pack.title}`}\n${pack.description}`;
 
+      const checkoutURL =
+      process.env.CHECKOUT_DOMAIN +
+      ctx.session.botName +
+      "/" +
+      ctx.from.id +
+      "/" +
+      pack._id;
+
+      if (pack.media_preview_type === "photo") {
         await ctx.replyWithPhoto(pack.media_preview, {
           caption: caption,
           ...Markup.inlineKeyboard([
