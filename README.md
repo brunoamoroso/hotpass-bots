@@ -1,7 +1,7 @@
 
 # Hotpass Bots
  
- [![Author: Bruno Amoroso](https://img.shields.io/badge/Bruno%20Amoroso-14b8a6?label=Author&style=for-the-badge)](https://www.linkedin.com/in/amorosobruno) ![Language: Javascript](https://camo.githubusercontent.com/8fc231abee75fa5f2987e9cebb639ebda239dbc077fdcf454b1de4f55043c333/68747470733a2f2f696d672e736869656c64732e696f2f7374617469632f76313f6c6162656c3d4c616e6775616765266d6573736167653d4a61766173637269707426636f6c6f723d79656c6c6f77267374796c653d666f722d7468652d6261646765266c6f676f3d4a617661536372697074) ![Environment: NodeJS](https://img.shields.io/badge/NODEJS-5FA04E?label=environment&style=for-the-badge&logo=nodedotjs) [![Framework: TelegrafJS](https://img.shields.io/badge/TelegrafJS-26A5E4?label=FRAMEWORK&style=for-the-badge&logo=telegram)](https://github.com/telegraf/telegraf) [![Framework: Express](https://img.shields.io/badge/Express-000000?label=FRAMEWORK&style=for-the-badge&logo=express)  ](https://expressjs.com/)[  ](https://github.com/drifaro/ReadMe#)
+ [![Author: Bruno Amoroso](https://img.shields.io/badge/Bruno%20Amoroso-14b8a6?label=Author&style=for-the-badge)](https://www.linkedin.com/in/amorosobruno) ![Language: Javascript](https://camo.githubusercontent.com/8fc231abee75fa5f2987e9cebb639ebda239dbc077fdcf454b1de4f55043c333/68747470733a2f2f696d672e736869656c64732e696f2f7374617469632f76313f6c6162656c3d4c616e6775616765266d6573736167653d4a61766173637269707426636f6c6f723d79656c6c6f77267374796c653d666f722d7468652d6261646765266c6f676f3d4a617661536372697074) ![Environment: NodeJS](https://img.shields.io/badge/NODEJS-5FA04E?label=environment&style=for-the-badge&logo=nodedotjs) [![Framework: TelegrafJS](https://img.shields.io/badge/TelegrafJS-26A5E4?label=FRAMEWORK&style=for-the-badge&logo=telegram)](https://github.com/telegraf/telegraf) [![Framework: Express](https://img.shields.io/badge/Express-000000?label=FRAMEWORK&style=for-the-badge&logo=express)  ](https://expressjs.com/) [![Database: MongoDB](https://img.shields.io/badge/MONGODB-47A248?label=DATABASE&style=for-the-badge&logo=mongodb)  ](https://www.mongodb.com/)
 
 ## 📌About
 
@@ -13,7 +13,8 @@
 
 ### Personal Growth
 - Gained expertise in **TelegrafJS** for Telegram bot development.
--   Successfully implemented a payment checkout system, including plan and item management.
+- Successfully implemented a payment checkout system, including plan and item management.
+- Working with multi-tenancy using MongoDB
 
 ## 🚀Features
 -   **Subscription Plans Management:**  
